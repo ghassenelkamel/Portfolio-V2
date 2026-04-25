@@ -1,0 +1,10 @@
+FROM golang:1.25.5-bookworm
+
+WORKDIR /app
+
+# Keep it simple for dev. The official image already sets PATH correctly,
+# but login shells can override it, so we won't use `sh -l`.
+COPY go.mod ./
+RUN go env -w GOMODCACHE=/go/pkg/mod
+
+CMD ["sh", "-c", "echo PATH=$PATH && which go && go version && go run ./cmd/portfolio"]

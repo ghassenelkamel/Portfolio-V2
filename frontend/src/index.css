@@ -1,0 +1,17 @@
+/* src/index.css */
+/* SAFE: do not lock html/body, do not overflow hidden globally */
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+

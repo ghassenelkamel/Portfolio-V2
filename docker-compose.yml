@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - ADDR=:8080
+      - WEB_DIR=/app/web
+      - GITHUB_USER=ghassenelkamel
+      # - GITHUB_TOKEN=...
+      # - CONTACT_FORWARD_URL=...

@@ -1,0 +1,90 @@
+@font-face {
+  font-family: "HACKED";
+  src: url("/assets/Hacked-KerX.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TwoLines";
+  src: url("/assets/2_lines.woff") format("woff");
+  font-display: swap;
+}
+
+/* Global theme (modern terminal + glass) */
+:root {
+  /* Fonts */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", Arial;
+  --font-mono: ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+
+  /* Base palette */
+  --bg: #07080b;
+  --surface: rgba(15, 20, 25, 0.38);
+  --surface-2: rgba(15, 20, 25, 0.26);
+  --text: rgba(245, 245, 245, 0.92);
+  --muted: rgba(245, 245, 245, 0.68);
+
+  /* Accent (professional red) */
+  --accent: #e45a5a;
+  --accent-2: rgba(228, 90, 90, 0.18);
+  --accent-3: rgba(228, 90, 90, 0.08);
+
+  /* Terminal green for subtle highlights */
+  --term: #00ffb4;
+  --term-2: rgba(0, 255, 180, 0.16);
+
+  /* Terminal glass tuning (more transparent, less blur) */
+  --term-surface: rgba(15, 20, 25, 0.16);
+  --term-surface-2: rgba(15, 20, 25, 0.09);
+  --term-blur: 14px;
+
+  /* Borders / glass */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-2: rgba(255, 255, 255, 0.16);
+  --blur: 18px;
+  --radius: 14px;
+
+  /* Legacy layout vars (kept for compatibility) */
+  --tabs-top: 16px;
+  --content-top: 74px;
+  --content-bottom: 18px;
+  --left-rail: 160px;
+  --right-rail: 90px;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(228, 90, 90, 0.22);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
