@@ -1,9 +1,47 @@
 <script lang="ts">
+  type ContactContent = {
+    eyebrow?: string;
+    title?: string;
+    description?: string;
+    email?: string;
+    linkedin?: string;
+    github?: string;
+    portfolio?: string;
+  };
+
+  const fallbackContent: ContactContent = {
+    eyebrow: "Contact",
+    title: "Professional Reach",
+    description: "Select a contact channel to discuss scope, impact, and collaboration.",
+    email: "Ghassenelkamel@live.fr",
+    linkedin: "https://linkedin.com/in/ghassenelkamel",
+    github: "https://github.com/ghassenelkamel",
+    portfolio: "https://ghassenelkamel.fr"
+  };
+
+  let content = $state<ContactContent>(fallbackContent);
+
   let from = $state("");
   let subject = $state("");
   let message = $state("");
   let status = $state<string | null>(null);
   let sending = $state(false);
+
+  $effect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/content/contact");
+        const j = await res.json();
+        const d = (j?.data ?? {}) as ContactContent;
+        content = {
+          ...fallbackContent,
+          ...d
+        };
+      } catch {
+        // Keep fallback content.
+      }
+    })();
+  });
 
   async function submit() {
     status = null;
@@ -27,7 +65,14 @@
 </script>
 
 <div class="pane">
-  <h2>Contact</h2>
+  <h2>{content.title || "Contact"}</h2>
+  <p class="desc">{content.description || "Select a contact channel to discuss scope, impact, and collaboration."}</p>
+
+  <div class="links">
+    <a href={"mailto:" + (content.email || "Ghassenelkamel@live.fr")}>{content.email || "Ghassenelkamel@live.fr"}</a>
+    <a href={content.linkedin || "https://linkedin.com/in/ghassenelkamel"} target="_blank" rel="noreferrer">linkedin</a>
+    <a href={content.github || "https://github.com/ghassenelkamel"} target="_blank" rel="noreferrer">github</a>
+  </div>
 
   <div class="form">
     <label>
@@ -66,6 +111,28 @@
     color: var(--accent, #e45a5a);
     font-size: 18px;
     letter-spacing: -0.25px;
+  }
+
+  .desc {
+    margin: 0 0 10px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.45;
+  }
+
+  .links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 0 12px;
+  }
+
+  .links a {
+    color: rgba(255, 255, 255, 0.78);
+    text-decoration: none;
+    font-size: 12px;
+    border-bottom: 1px dashed rgba(228, 90, 90, 0.3);
+    padding-bottom: 2px;
   }
 
   .form {

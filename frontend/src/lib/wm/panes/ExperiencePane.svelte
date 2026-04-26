@@ -1,15 +1,44 @@
 <script lang="ts">
   type Item = {
+    id: string;
     company: string;
     role: string;
     where: string;
     dates: string;
     impact: string[];
     stack: string[];
+    image?: string;
+    proofUrl?: string;
+    sortOrder?: number;
   };
 
-  const timeline: Item[] = [
+  type ExperienceContent = {
+    eyebrow?: string;
+    title?: string;
+    description?: string;
+    items?: Array<{
+      id: string;
+      role: string;
+      org: string;
+      dates: string;
+      location: string;
+      summary: string[];
+      bullets?: string[];
+      image?: string;
+      proofUrl?: string;
+      sortOrder?: number;
+    }>;
+  };
+
+  let content = $state<ExperienceContent>({
+    eyebrow: "Experience",
+    title: "Professional Journey",
+    description: "Timeline highlights (company, role, dates, impact)."
+  });
+
+  const fallbackTimeline: Item[] = [
     {
+      id: "spade-integrity",
       company: "Spade Integrity",
       role: "IoT & Systems Engineer",
       where: "Paris, FR",
@@ -23,6 +52,7 @@
       stack: ["Go", "PostgreSQL", "MQTT", "TLS", "OpenVPN/WireGuard", "Yocto", "Linux", "Docker", "Svelte"]
     },
     {
+      id: "selected-projects",
       company: "Selected engineering projects",
       role: "Backend / Infra / Embedded",
       where: "Open-source & personal",
@@ -35,17 +65,58 @@
       stack: ["Linux", "Go", "Networking", "Docker", "MQTT", "TypeScript", "Svelte"]
     }
   ];
+
+  let timeline = $state<Item[]>(fallbackTimeline);
+
+  $effect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/content/experience");
+        const j = await res.json();
+        const d = (j?.data ?? {}) as ExperienceContent;
+
+        const mapped: Item[] = (Array.isArray(d.items) ? d.items : [])
+          .slice()
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((it) => ({
+            id: it.id,
+            company: it.org,
+            role: it.role,
+            where: it.location,
+            dates: it.dates,
+            impact: Array.isArray(it.summary) ? it.summary : [],
+            stack: Array.isArray(it.bullets) ? it.bullets : [],
+            image: it.image,
+            proofUrl: it.proofUrl,
+            sortOrder: it.sortOrder
+          }))
+          .filter((it) => it.id && it.company && it.role && it.dates && it.impact.length);
+
+        if (mapped.length) {
+          timeline = mapped;
+        }
+
+        content = {
+          eyebrow: d.eyebrow || "Experience",
+          title: d.title || "Professional Journey",
+          description: d.description || "Timeline highlights (company, role, dates, impact)."
+        };
+      } catch {
+        // Keep fallback timeline.
+      }
+    })();
+  });
 </script>
 
 <div class="surface">
   <header class="hdr">
     <div class="path">/experience</div>
-    <h1>Experience</h1>
-    <p>Timeline highlights (company, role, dates, impact).</p>
+    <h1>{content.title || "Experience"}</h1>
+    <p>{content.description || "Timeline highlights (company, role, dates, impact)."}</p>
   </header>
 
   <div class="list">
-    {#each timeline as it (it.company + it.role)}
+    {#each timeline as it (it.id)}
       <article class="card">
         <div class="top">
           <div class="who">

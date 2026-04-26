@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from "$app/environment";
   import "$lib/appshell.css";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
@@ -10,13 +11,13 @@
 
   type WSKey = "terminal" | "about" | "experience" | "work" | "skills" | "contact";
 
-  const workspaces: { key: WSKey; n: string; label: string; href: string }[] = [
-    { key: "terminal", n: "1", label: "wm", href: "/" },
-    { key: "about", n: "2", label: "about", href: "/about" },
-    { key: "experience", n: "3", label: "exp", href: "/experience" },
-    { key: "work", n: "4", label: "work", href: "/work" },
-    { key: "skills", n: "5", label: "skills", href: "/skills" },
-    { key: "contact", n: "6", label: "contact", href: "/contact" }
+  const workspaces: { key: WSKey; n: number; label: string; href: string; hint: string }[] = [
+    { key: "terminal", n: 1, label: "Terminal", href: "/", hint: "Window manager" },
+    { key: "about", n: 2, label: "About", href: "/about", hint: "Profile summary" },
+    { key: "experience", n: 3, label: "Experience", href: "/experience", hint: "Timeline and roles" },
+    { key: "work", n: 4, label: "Work", href: "/work", hint: "Projects and repos" },
+    { key: "skills", n: 5, label: "Skills", href: "/skills", hint: "Live skill monitor" },
+    { key: "contact", n: 6, label: "Contact", href: "/contact", hint: "Reach out" }
   ];
 
   const routeToWS: Record<string, WSKey> = {
@@ -30,9 +31,23 @@
 
   const active = $derived(routeToWS[$page.url.pathname] ?? "terminal");
 
+  const navSourceStorageKey = "kagha:last-ws-source";
+
   function openWS(ws: WSKey) {
     const w = workspaces.find((x) => x.key === ws);
     if (!w) return;
+
+    if (browser) {
+      const cur = workspaces.find((x) => x.key === active);
+      if (cur) {
+        try {
+          window.sessionStorage.setItem(navSourceStorageKey, cur.label);
+        } catch {
+          // ignore storage errors
+        }
+      }
+    }
+
     void goto(w.href);
   }
 
@@ -106,8 +121,46 @@
           class={"ws " + (ws.key === active ? "wsActive" : "")}
           onclick={() => openWS(ws.key)}
           aria-current={ws.key === active ? "page" : undefined}
+          title={ws.hint}
         >
-          <span class="wsNum">{ws.n}</span>
+          <span class="wsIcon" aria-hidden="true">
+            {#if ws.key === "terminal"}
+              <svg viewBox="0 0 24 24" fill="none">
+                <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" stroke="currentColor" stroke-width="1.5" />
+                <path d="M7 9l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M12.5 15h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            {:else if ws.key === "about"}
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.5" />
+                <path d="M6 18c1.2-2.4 3.2-3.6 6-3.6s4.8 1.2 6 3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            {:else if ws.key === "experience"}
+              <svg viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="7" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.5" />
+                <path d="M9 7V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5V7" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            {:else if ws.key === "work"}
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M3.5 8.5A2.5 2.5 0 016 6h4l1.2 1.5H18A2.5 2.5 0 0120.5 10v7A2.5 2.5 0 0118 19.5H6A2.5 2.5 0 013.5 17V8.5z" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            {:else if ws.key === "skills"}
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M6 17V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                <path d="M12 17V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                <path d="M18 17v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                <circle cx="6" cy="8" r="1.5" fill="currentColor" />
+                <circle cx="12" cy="11" r="1.5" fill="currentColor" />
+                <circle cx="18" cy="12" r="1.5" fill="currentColor" />
+              </svg>
+            {:else}
+              <svg viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="6" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5" />
+                <path d="M5.5 8l6.5 5L18.5 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            {/if}
+          </span>
+          <span class="wsNum" aria-hidden="true">{ws.n}</span>
           <span class="wsLabel">{ws.label}</span>
         </button>
       {/each}

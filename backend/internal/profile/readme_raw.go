@@ -21,6 +21,8 @@ func fetchReadmeRaw(ctx context.Context) (string, bool) {
 		if err != nil {
 			continue
 		}
+		req.Header.Set("User-Agent", "portfolio-v2-profile-fetcher")
+		req.Header.Set("Accept", "text/plain")
 		resp, err := client.Do(req)
 		if err != nil {
 			continue

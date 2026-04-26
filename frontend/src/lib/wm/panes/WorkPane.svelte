@@ -9,18 +9,27 @@
     language: string | null;
     stargazers_count?: number;
     forks_count?: number;
+    pushed_at?: string;
+    updated_at?: string;
   };
 
   let loading = $state(true);
   let err = $state<string | null>(null);
   let repos = $state<Repo[]>([]);
 
+  function dateKey(r: Repo) {
+    const s = r.pushed_at ?? r.updated_at ?? "";
+    const t = Date.parse(s);
+    return Number.isFinite(t) ? t : 0;
+  }
+
   onMount(async () => {
     try {
       const r = await fetch("/api/github-repos?user=ghassenelkamel&limit=100");
       const j = await r.json();
       if (j?.error) err = j.error;
-      repos = j?.repos ?? [];
+      const list = Array.isArray(j?.repos) ? (j.repos as Repo[]) : [];
+      repos = [...list].sort((a, b) => dateKey(b) - dateKey(a));
     } catch (e) {
       err = e instanceof Error ? e.message : "Unknown error.";
     } finally {

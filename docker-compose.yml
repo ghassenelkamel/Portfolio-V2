@@ -7,5 +7,10 @@ services:
       - ADDR=:8080
       - WEB_DIR=/app/web
       - GITHUB_USER=ghassenelkamel
+      - CONTENT_REPO_OWNER=ghassenelkamel
+      - CONTENT_REPO_NAME=portfolio-content
+      - CONTENT_REPO_REF=main
+      - CONTENT_REPO_DIR=content
+      - CONTENT_CACHE_TTL=300
       # - GITHUB_TOKEN=...
       # - CONTACT_FORWARD_URL=...

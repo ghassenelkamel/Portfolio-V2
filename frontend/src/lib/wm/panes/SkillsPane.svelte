@@ -1,6 +1,19 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { avgSkill, skillsData, topSkill } from "$lib/data/skills";
+
+  type SkillContent = {
+    id: string;
+    name: string;
+    level: number;
+    order: number;
+  };
+
+  type SkillsContent = {
+    eyebrow?: string;
+    title?: string;
+    description?: string;
+    items?: SkillContent[];
+  };
 
   type LiveSkill = {
     name: string;
@@ -10,15 +23,29 @@
   };
 
   const points = 22;
+
+  const fallbackItems: SkillContent[] = [
+    { id: "go", name: "Go (Backend)", level: 88, order: 1 },
+    { id: "mqtt-vpn-tls", name: "MQTT / VPN / TLS", level: 86, order: 2 },
+    { id: "linux", name: "Linux / Unix", level: 86, order: 3 },
+    { id: "postgresql", name: "PostgreSQL", level: 82, order: 4 },
+    { id: "docker", name: "Docker", level: 78, order: 5 },
+    { id: "javascript-svelte", name: "JavaScript / Svelte", level: 78, order: 6 },
+    { id: "c-cpp", name: "C / C++", level: 72, order: 7 },
+    { id: "python", name: "Python", level: 70, order: 8 }
+  ];
+
+  let content = $state<SkillsContent>({
+    eyebrow: "Skills",
+    title: "Capability Monitor",
+    description: "Track live proficiency signals across core tools and technologies.",
+    items: fallbackItems
+  });
+
   let skills = $state<LiveSkill[]>(
-    skillsData.map((s) => {
-      const v = Math.round(s.pct * 100);
-      return {
-        name: s.name,
-        base: v,
-        live: v,
-        history: Array.from({ length: points }, () => v)
-      };
+    fallbackItems.map((s) => {
+      const v = Math.round(s.level);
+      return { name: s.name, base: v, live: v, history: Array.from({ length: points }, () => v) };
     })
   );
 
@@ -45,6 +72,31 @@
   }
 
   onMount(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/content/skills");
+        const j = await res.json();
+        const d = (j?.data ?? {}) as SkillsContent;
+        const items = Array.isArray(d.items) && d.items.length
+          ? [...d.items].sort((a, b) => a.order - b.order)
+          : fallbackItems;
+
+        content = {
+          eyebrow: d.eyebrow || "Skills",
+          title: d.title || "Capability Monitor",
+          description: d.description || "Track live proficiency signals across core tools and technologies.",
+          items
+        };
+
+        skills = items.map((s) => {
+          const v = Math.round(s.level);
+          return { name: s.name, base: v, live: v, history: Array.from({ length: points }, () => v) };
+        });
+      } catch {
+        // Keep fallback content.
+      }
+    })();
+
     timer = setInterval(step, 280);
   });
 
@@ -52,8 +104,8 @@
     if (timer) clearInterval(timer);
   });
 
-  const avg = $derived(Math.round(avgSkill(skills.map((s) => ({ name: s.name, pct: s.live / 100 }))) * 100));
-  const top = $derived(topSkill(skills.map((s) => ({ name: s.name, pct: s.live / 100 }))));
+  const avg = $derived(Math.round(skills.reduce((sum, s) => sum + s.live, 0) / Math.max(skills.length, 1)));
+  const top = $derived(skills.length ? [...skills].sort((a, b) => b.live - a.live)[0] : null);
 
   function barClass(v: number) {
     if (v >= 85) return "hot";
@@ -64,7 +116,9 @@
 
 <div class="pane">
   <header class="head">
-    <h2>Skills</h2>
+    <div class="eyebrow">{content.eyebrow || "Skills"}</div>
+    <div class="t">{content.title || "Capability Monitor"}</div>
+    <div class="s">{content.description || "Track live proficiency signals across core tools and technologies."}</div>
     <div class="meta">
       <span>avg {avg}%</span>
       <span>top {top?.name ?? "-"}</span>
@@ -99,14 +153,29 @@
 
   .head {
     display: grid;
-    gap: 6px;
+    gap: 7px;
   }
 
-  h2 {
-    margin: 0;
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(245, 245, 245, 0.58);
+  }
+
+  .t {
     font-size: 20px;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
     color: var(--accent, #e45a5a);
-    letter-spacing: -0.2px;
+  }
+
+  .s {
+    margin-top: 1px;
+    max-width: 52ch;
+    font-size: 12px;
+    line-height: 1.45;
+    color: rgba(245, 245, 245, 0.7);
   }
 
   .meta {

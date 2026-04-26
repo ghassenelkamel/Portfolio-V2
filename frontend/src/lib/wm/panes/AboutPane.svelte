@@ -2,49 +2,47 @@
   type Summary = {
     headline: string;
     subtitle: string;
-    about: string;
-    working?: string;
-    goals?: string;
+    summary: string[];
+    specialties: string[];
+    currently: string[];
+    goals: string[];
     email?: string;
-    portfolio?: string;
+    site?: string;
+    github?: string;
   };
 
   let loading = $state(true);
   let err = $state<string | null>(null);
   let s = $state<Summary | null>(null);
 
-  function stripMarkdown(x: string) {
-    let t = x ?? "";
-    t = t.replaceAll("**", "");
-    t = t.replaceAll("__", "");
-    t = t.replaceAll("`", "");
-    // remove bullet emoji prefixes like "- 🧠 " or "- 🔐 "
-    t = t.replace(/^\s*-\s*[\u{1F300}-\u{1FAFF}]\s*/gmu, "- ");
-    // remove common symbol-style leading icons (e.g. gear) in bullets
-    t = t.replace(/^\s*-\s*[⚙️⚙🔧🛠️🧩📡🛰️]+\s*/gmu, "- ");
-    // remove any leftover standalone emojis at start of line
-    t = t.replace(/^\s*[\u{1F300}-\u{1FAFF}]+\s*/gmu, "");
-    // remove common symbol-style leading icons at line start (non-bullet)
-    t = t.replace(/^\s*[⚙️⚙🔧🛠️🧩📡🛰️]+\s*/gmu, "");
-    // normalize trailing double-spaces used for markdown line breaks
-    t = t.replace(/[ \t]+$/gm, "");
-    return t.trim();
-  }
-
-  function toParas(x: string) {
-    const t = stripMarkdown(x);
-    return t.split("\n").map((l) => l.trim()).filter(Boolean);
-  }
+  const fallback: Summary = {
+    headline: "Ghassen El Kamel",
+    subtitle: "IoT & Systems Engineer · Backend · Infrastructure",
+    summary: [],
+    specialties: [],
+    currently: [],
+    goals: [],
+    email: "Ghassenelkamel@live.fr",
+    site: "https://ghassenelkamel.fr",
+    github: "https://github.com/ghassenelkamel"
+  };
 
   $effect(() => {
     (async () => {
       try {
         loading = true;
         err = null;
-        const res = await fetch("/api/profile-summary");
+        const res = await fetch("/api/content/about");
         const j = await res.json();
-        if (!j?.ok) throw new Error("profile-summary not ok");
-        s = j.summary as Summary;
+        const d = (j?.data ?? {}) as Partial<Summary>;
+        s = {
+          ...fallback,
+          ...d,
+          summary: Array.isArray(d.summary) ? d.summary : fallback.summary,
+          specialties: Array.isArray(d.specialties) ? d.specialties : fallback.specialties,
+          currently: Array.isArray(d.currently) ? d.currently : fallback.currently,
+          goals: Array.isArray(d.goals) ? d.goals : fallback.goals
+        };
       } catch (e: any) {
         err = e?.message ?? "failed";
       } finally {
@@ -69,41 +67,35 @@
     <div class="grid">
       <div class="card">
         <div class="label">About</div>
-        {#each toParas(s.about) as line (line)}
-          {#if line.startsWith("- ")}
-            <div class="li">{line.slice(2)}</div>
-          {:else}
-            <div class="p">{line}</div>
-          {/if}
+        {#each s.summary as line (line)}
+          <div class="p">{line}</div>
+        {/each}
+
+        <div class="label label2">Specialties</div>
+        {#each s.specialties as line (line)}
+          <div class="li">{line}</div>
         {/each}
       </div>
 
       <div class="card">
         <div class="label">Currently</div>
-        {#each toParas(s.working ?? "") as line (line)}
-          {#if line.startsWith("- ")}
-            <div class="li">{line.slice(2)}</div>
-          {:else}
-            <div class="p">{line}</div>
-          {/if}
+        {#each s.currently as line (line)}
+          <div class="li">{line}</div>
         {/each}
       </div>
 
       <div class="card">
         <div class="label">Goals</div>
-        {#each toParas(s.goals ?? "") as line (line)}
-          {#if line.startsWith("- ")}
-            <div class="li">{line.slice(2)}</div>
-          {:else}
-            <div class="p">{line}</div>
-          {/if}
+        {#each s.goals as line (line)}
+          <div class="li">{line}</div>
         {/each}
 
         <div class="sep"></div>
 
         <div class="kv">
           <div><span class="k2">email</span> {s.email ?? "-"}</div>
-          <div><span class="k2">site</span> {s.portfolio ?? "-"}</div>
+          <div><span class="k2">site</span> {s.site ?? "-"}</div>
+          <div><span class="k2">github</span> {s.github ?? "-"}</div>
         </div>
       </div>
     </div>
@@ -201,6 +193,10 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+  }
+
+  .label2 {
+    margin-top: 10px;
   }
 
   .label::before {

@@ -1,79 +1,41 @@
 <script lang="ts">
-  type Summary = {
+  type AboutContent = {
     headline?: string;
     subtitle?: string;
-    about?: string;
-    working?: string;
-    goals?: string;
+    summary?: string[];
+    keywords?: string[];
+    specialties?: string[];
+    currently?: string[];
+    goals?: string[];
     email?: string;
-    portfolio?: string;
+    site?: string;
+    github?: string;
   };
 
-  // SvelteKit provides `data` to the page component
-  const { data } = $props<{ data: any }>();
+  const { data } = $props<{ data: { content?: AboutContent } }>();
+  const content = $derived.by(() => data?.content ?? {});
 
-  // Normalize shape: either { ok, summary } or just summary-like
-  const summary: Summary =
-    data && typeof data === "object" && "summary" in data ? (data.summary ?? {}) : (data ?? {});
+  const defaultKeywords = [
+    "IoT architecture",
+    "Go backend",
+    "Embedded Linux",
+    "MQTT / TLS",
+    "VPN networking",
+    "Automation APIs"
+  ];
 
-  function stripMarkdown(s: string) {
-    return (s ?? "")
-      .replaceAll(/\*\*(.*?)\*\*/g, "$1")
-      .replaceAll(/`([^`]+)`/g, "$1")
-      .replaceAll(/\[(.*?)\]\((.*?)\)/g, "$1 ($2)")
-      .replaceAll(/\r\n/g, "\n")
-      .trim();
-  }
-
-  function linesToBullets(s: string) {
-    const t = stripMarkdown(s);
-    const out: string[] = [];
-    for (const raw of t.split("\n")) {
-      const line = raw.trim();
-      if (!line) continue;
-      if (!line.startsWith("-")) continue;
-
-      let b = line.replace(/^-+\s*/, "");
-      // remove leading emoji/icons if present
-      b = b.replace(/^[\p{Extended_Pictographic}\uFE0F]+\s*/u, "");
-      if (b) out.push(b.trim());
-    }
-    return out;
-  }
-
-  function pickParagraphs(s: string) {
-    const t = stripMarkdown(s);
-    const paras: string[] = [];
-    let buf: string[] = [];
-
-    const flush = () => {
-      const p = buf.join(" ").replace(/\s+/g, " ").trim();
-      if (p) paras.push(p);
-      buf = [];
-    };
-
-    for (const raw of t.split("\n")) {
-      const line = raw.trim();
-      if (!line) {
-        flush();
-        continue;
-      }
-      if (line.startsWith("-")) continue;
-      buf.push(line);
-    }
-    flush();
-    return paras.slice(0, 4);
-  }
-
-  const headline = summary.headline || "Ghassen El Kamel";
-  const subtitle = summary.subtitle || "IoT & Systems Engineer · Backend · Infrastructure";
-  const email = summary.email || "Ghassenelkamel@live.fr";
-  const portfolio = summary.portfolio || "https://ghassenelkamel.fr";
-
-  const aboutParas = pickParagraphs(summary.about || "");
-  const specialties = linesToBullets(summary.about || "");
-  const now = linesToBullets(summary.working || "");
-  const goals = linesToBullets(summary.goals || "");
+  const headline = $derived.by(() => content.headline || "Ghassen El Kamel");
+  const subtitle = $derived.by(() => content.subtitle || "IoT & Systems Engineer · Backend · Infrastructure");
+  const summary = $derived.by(() => Array.isArray(content.summary) ? content.summary.filter(Boolean) : []);
+  const keywords = $derived.by(() => Array.isArray(content.keywords) && content.keywords.length
+    ? content.keywords.filter(Boolean)
+    : defaultKeywords);
+  const specialties = $derived.by(() => Array.isArray(content.specialties) ? content.specialties.filter(Boolean) : []);
+  const now = $derived.by(() => Array.isArray(content.currently) ? content.currently.filter(Boolean) : []);
+  const goals = $derived.by(() => Array.isArray(content.goals) ? content.goals.filter(Boolean) : []);
+  const email = $derived.by(() => content.email || "Ghassenelkamel@live.fr");
+  const site = $derived.by(() => content.site || "https://ghassenelkamel.fr");
+  const github = $derived.by(() => content.github || "https://github.com/ghassenelkamel");
 
   let copied = $state<string | null>(null);
 
@@ -103,34 +65,31 @@
       <div class="sub">{subtitle}</div>
 
       <div class="intro">
-        <p>
-          I build the systems that make connected devices behave like products: reliable data flow, secure connectivity,
-          and backends that stay fast under real-world constraints.
-        </p>
-
-        {#each aboutParas as p}
-          <p class="muted">{p}</p>
-        {/each}
+        {#if summary.length}
+          {#each summary as p}
+            <p>{p}</p>
+          {/each}
+        {:else}
+          <p>I build reliable systems for connected products: secure connectivity, clean data flow, and backend services that hold up in production.</p>
+        {/if}
       </div>
 
       <div class="links">
         <div class="linkRow">
-          <span class="label">Email</span>
+          <span class="label">email</span>
           <a class="link" href={"mailto:" + email}>{email}</a>
           <button class="mini" type="button" onclick={() => copy(email, "Email")}>copy</button>
         </div>
 
         <div class="linkRow">
-          <span class="label">Portfolio</span>
-          <a class="link" href={portfolio} target="_blank" rel="noreferrer">{portfolio}</a>
-          <button class="mini" type="button" onclick={() => copy(portfolio, "Link")}>copy</button>
+          <span class="label">site</span>
+          <a class="link" href={site} target="_blank" rel="noreferrer">{site}</a>
+          <button class="mini" type="button" onclick={() => copy(site, "Link")}>copy</button>
         </div>
 
         <div class="linkRow">
           <span class="label">GitHub</span>
-          <a class="link" href="https://github.com/ghassenelkamel" target="_blank" rel="noreferrer">
-            github.com/ghassenelkamel
-          </a>
+          <a class="link" href={github} target="_blank" rel="noreferrer">{github.replace(/^https?:\/\//, "")}</a>
         </div>
 
         {#if copied}
@@ -142,17 +101,14 @@
 
   <section class="grid">
     <div class="card">
-      <div class="cardTitle">Focus</div>
+      <div class="cardTitle">About</div>
       <div class="chips">
-        <span class="chip">Go services</span>
-        <span class="chip">Embedded Linux</span>
-        <span class="chip">MQTT / TLS</span>
-        <span class="chip">VPN networking</span>
-        <span class="chip">APIs & automation</span>
-        <span class="chip">Reliability</span>
+        {#each keywords.slice(0, 6) as s}
+          <span class="chip">{s}</span>
+        {/each}
       </div>
       <div class="hr"></div>
-      <div class="listTitle">Core strengths</div>
+      <div class="listTitle">I specialize in</div>
       {#if specialties.length}
         <ul class="list">
           {#each specialties as it}
@@ -160,12 +116,12 @@
           {/each}
         </ul>
       {:else}
-        <div class="empty">Add bullet points to your profile summary to populate this section.</div>
+        <div class="empty">No specialties configured.</div>
       {/if}
     </div>
 
     <div class="card">
-      <div class="cardTitle">Now</div>
+      <div class="cardTitle">Currently</div>
       {#if now.length}
         <ul class="list">
           {#each now as it}
@@ -173,7 +129,7 @@
           {/each}
         </ul>
       {:else}
-        <div class="empty">No “Now” items yet.</div>
+        <div class="empty">No “Currently” items yet.</div>
       {/if}
     </div>
 
@@ -244,7 +200,6 @@
 
   .intro { margin-top: 12px; display: grid; gap: 10px; }
   .intro p { margin: 0; line-height: 1.55; color: rgba(245, 245, 245, 0.88); font-size: 14px; }
-  .intro .muted { color: rgba(245, 245, 245, 0.72); font-size: 13px; }
 
   .links { margin-top: 12px; display: grid; gap: 8px; }
   .linkRow { display: grid; grid-template-columns: 70px 1fr auto; gap: 10px; align-items: center; }

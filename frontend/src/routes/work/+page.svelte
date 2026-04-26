@@ -127,11 +127,9 @@
 <div class="wrap">
   <header class="hero">
     <div class="titleBlock">
-      <div class="k">work --repos</div>
-      <h1>Work</h1>
-      <p class="sub">
-        Live GitHub repository grid. Filter + sort locally. Open any card in a new tab.
-      </p>
+      <div class="eyebrow">Work</div>
+      <div class="t">Project Portfolio</div>
+      <div class="s">Select a repository to explore scope, impact, and tools used.</div>
     </div>
 
     <div class="stats">
@@ -285,25 +283,30 @@
     align-items: end;
   }
 
-  .k {
+  .eyebrow {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 12px;
-    color: rgba(245,245,245,0.55);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(245,245,245,0.58);
   }
 
-  h1 {
-    margin: 6px 0 6px 0;
+  .t {
+    margin-top: 7px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: 0.4px;
     color: rgba(228,90,90,0.95);
-    letter-spacing: 0.5px;
   }
 
-  .sub {
-    margin: 0;
+  .s {
+    margin-top: 8px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    color: rgba(245,245,245,0.70);
+    color: rgba(245,245,245,0.72);
     font-size: 13px;
-    max-width: 70ch;
+    line-height: 1.5;
+    max-width: 66ch;
   }
 
   .stats {

@@ -1,6 +1,6 @@
 # Portfolio V2
 
-Portfolio web application with a Go backend and a SvelteKit frontend, designed for local development with Docker Compose.
+Portfolio web application with a Go backend and a SvelteKit frontend, designed with Docker Compose.
 
 ## Stack
 
@@ -91,6 +91,11 @@ Configure values in `docker-compose.dev.yml` (or via your environment):
 - `ADDR`: API listen address (example: `:8080`)
 - `GITHUB_USER`: GitHub username used by API integrations
 - `GITHUB_TOKEN`: Optional GitHub token (helps with rate limits)
+- `CONTENT_REPO_OWNER`: Owner of the portfolio content repository
+- `CONTENT_REPO_NAME`: Repository name for structured site content
+- `CONTENT_REPO_REF`: Branch/tag/commit to read (example: `main`)
+- `CONTENT_REPO_DIR`: Folder in content repo containing JSON files (example: `content`)
+- `CONTENT_CACHE_TTL`: API cache TTL in seconds for content fetches
 - `CONTACT_FORWARD_URL`: Optional endpoint to forward contact submissions
 
 ### Web service
@@ -119,6 +124,17 @@ bun dev
 - Port conflict: ensure `5173` and `8080` are free.
 - Build/cache issues: run `docker compose -f docker-compose.dev.yml down -v` then start again.
 - If one service fails, inspect logs with `docker compose -f docker-compose.dev.yml logs -f <service-name>`.
+
+## Dynamic Content Source
+
+The About, Skills, Experience, and Contact pages are loaded from:
+
+- `/api/content/about`
+- `/api/content/skills`
+- `/api/content/experience`
+- `/api/content/contact`
+
+Back-end content endpoints pull JSON from your public content repository (`CONTENT_REPO_*` variables) and keep a last-known-good cache fallback.
 
 ## License
 

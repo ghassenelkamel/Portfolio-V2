@@ -1,6 +1,34 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { skillsData } from "$lib/data/skills";
+
+  type SkillContent = {
+    id: string;
+    name: string;
+    level: number;
+    order: number;
+  };
+
+  type SkillsContent = {
+    eyebrow?: string;
+    title?: string;
+    description?: string;
+    items?: SkillContent[];
+  };
+
+  const { data } = $props<{ data: { content?: SkillsContent } }>();
+  const content = $derived.by(() => data?.content ?? {});
+  const baseItems = Array.isArray(content.items) && content.items.length
+    ? [...content.items].sort((a, b) => a.order - b.order)
+    : [
+        { id: "go", name: "Go (Backend)", level: 88, order: 1 },
+        { id: "mqtt-vpn-tls", name: "MQTT / VPN / TLS", level: 86, order: 2 },
+        { id: "linux", name: "Linux / Unix", level: 86, order: 3 },
+        { id: "postgresql", name: "PostgreSQL", level: 82, order: 4 },
+        { id: "docker", name: "Docker", level: 78, order: 5 },
+        { id: "javascript-svelte", name: "JavaScript / Svelte", level: 78, order: 6 },
+        { id: "c-cpp", name: "C / C++", level: 72, order: 7 },
+        { id: "python", name: "Python", level: 70, order: 8 }
+      ];
 
   type LiveSkill = {
     name: string;
@@ -15,10 +43,10 @@
   let timer: ReturnType<typeof setInterval> | null = null;
 
   let skills = $state<LiveSkill[]>(
-    [...skillsData]
-      .sort((a, b) => b.pct - a.pct)
+    [...baseItems]
+      .sort((a, b) => b.level - a.level)
       .map((s) => {
-        const v = Math.round(s.pct * 100);
+        const v = Math.round(s.level);
         return {
           name: s.name,
           base: v,
@@ -80,7 +108,9 @@
 
 <div class="wrap">
   <header class="title">
-    <h1>Skills</h1>
+    <div class="eyebrow">{content.eyebrow || "Skills"}</div>
+    <div class="t">{content.title || "Capability Monitor"}</div>
+    <div class="s">{content.description || "Track live proficiency signals across core tools and technologies."}</div>
     <div class="meta">
       <span>avg {avg}%</span>
       <span>peak {peak?.name ?? "-"}</span>
@@ -117,15 +147,32 @@
 
   .title {
     display: grid;
-    gap: 6px;
+    gap: 7px;
   }
 
-  h1 {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.95);
+  .eyebrow {
+    font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(245, 245, 245, 0.58);
+  }
+
+  .t {
+    color: rgba(228, 90, 90, 0.95);
     font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
     font-size: clamp(22px, 2.4vw, 30px);
-    letter-spacing: -0.4px;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
+  }
+
+  .s {
+    margin-top: 1px;
+    max-width: 66ch;
+    color: rgba(245, 245, 245, 0.72);
+    font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .meta {

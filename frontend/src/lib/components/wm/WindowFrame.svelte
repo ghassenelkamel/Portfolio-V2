@@ -40,6 +40,18 @@
   function openLauncher(m: SplitMode) { mode = m; open = true; }
   function launch(kind: AppKind) { wmSplitOpen(kind, mode, props.winId); open = false; }
   function fullscreen() { if (win) void goto(routeFor(win.kind)); }
+
+  function workspaceHintFor(kind: AppKind) {
+    switch (kind) {
+      case "terminal": return "ws Terminal";
+      case "about": return "ws About";
+      case "experience": return "ws Experience";
+      case "work": return "ws Work";
+      case "skills": return "ws Skills";
+      case "contact": return "ws Contact";
+    }
+  }
+
 </script>
 
 <div class={"win " + (focused ? "focus" : "")} onclick={() => wmFocus(props.winId)}>
@@ -76,17 +88,35 @@
 
   <div class="body">
     {#if win?.kind === "terminal"}
-      <Terminal visible={true} wmMode={true} />
-    {:else if win?.kind === "about"}
-      <AboutPane />
-    {:else if win?.kind === "experience"}
-      <ExperiencePane />
-    {:else if win?.kind === "work"}
-      <WorkPane />
-    {:else if win?.kind === "skills"}
-      <SkillsPane />
-    {:else if win?.kind === "contact"}
-      <ContactPane />
+      <Terminal visible={true} wmMode={true} active={focused} sessionKey={props.winId} />
+    {:else if win?.kind === "about" || win?.kind === "experience" || win?.kind === "work" || win?.kind === "skills" || win?.kind === "contact"}
+      <div class="paneStack">
+        <div class="paneMain">
+          {#if win?.kind === "about"}
+            <AboutPane />
+          {:else if win?.kind === "experience"}
+            <ExperiencePane />
+          {:else if win?.kind === "work"}
+            <WorkPane />
+          {:else if win?.kind === "skills"}
+            <SkillsPane />
+          {:else if win?.kind === "contact"}
+            <ContactPane />
+          {/if}
+        </div>
+
+        <div class="miniTerm" title="Docked terminal">
+          <Terminal
+            visible={true}
+            wmMode={true}
+            active={focused}
+            showBanner={false}
+            embedded={true}
+            suggestCommand={win ? workspaceHintFor(win.kind) : undefined}
+            sessionKey={`${props.winId}:dock`}
+          />
+        </div>
+      </div>
     {:else}
       <div class="pad muted">unknown</div>
     {/if}
@@ -193,6 +223,24 @@
     padding: 12px;
   }
 
+  .paneStack {
+    display: block;
+    min-height: 0;
+  }
+
+  .paneMain {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .miniTerm {
+    min-height: 56px;
+    overflow: visible;
+    border-radius: 0;
+    border-top: 0;
+    margin-top: 2px;
+  }
+
   .launcher {
     position: absolute;
     top: 40px;
@@ -251,6 +299,14 @@
 
     .body {
       padding: 10px;
+    }
+
+    .paneStack {
+      display: block;
+    }
+
+    .miniTerm {
+      min-height: 52px;
     }
 
     .right {

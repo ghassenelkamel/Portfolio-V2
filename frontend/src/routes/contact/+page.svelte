@@ -1,7 +1,23 @@
 <script lang="ts">
   type Status = { kind: 'ok' | 'err' | 'info'; msg: string } | null;
 
-  const toEmail = "Ghassenelkamel@live.fr";
+  type ContactContent = {
+    eyebrow?: string;
+    title?: string;
+    description?: string;
+    email?: string;
+    linkedin?: string;
+    github?: string;
+    portfolio?: string;
+  };
+
+  const { data } = $props<{ data: { content?: ContactContent } }>();
+  const content = $derived.by(() => data?.content ?? {});
+
+  const toEmail = content.email || "Ghassenelkamel@live.fr";
+  const linkedInUrl = content.linkedin || "https://linkedin.com/in/ghassenelkamel";
+  const githubUrl = content.github || "https://github.com/ghassenelkamel";
+  const portfolioUrl = content.portfolio || "https://ghassenelkamel.fr";
 
   let sending = $state(false);
   let status = $state<Status>(null);
@@ -78,9 +94,9 @@
 
 <div class="wrap">
   <div class="title">
-    <div class="k">mail --compose</div>
-    <h1>Contact</h1>
-    <p>Direct API send (no client secrets). Server can forward later if you configure it.</p>
+    <div class="eyebrow">{content.eyebrow || "Contact"}</div>
+    <div class="t">{content.title || "Professional Reach"}</div>
+    <div class="s">{content.description || "Select a contact channel to discuss scope, impact, and collaboration."}</div>
   </div>
 
   <div class="card">
@@ -113,8 +129,9 @@
         <button class="btn" type="button" disabled={sending} onclick={submit}>
           {sending ? "sending..." : "send"}
         </button>
-        <a class="link" href="https://linkedin.com/in/ghassenelkamel" target="_blank" rel="noreferrer">linkedin</a>
-        <a class="link" href="https://github.com/ghassenelkamel" target="_blank" rel="noreferrer">github</a>
+        <a class="link" href={linkedInUrl} target="_blank" rel="noreferrer">linkedin</a>
+        <a class="link" href={githubUrl} target="_blank" rel="noreferrer">github</a>
+        <a class="link" href={portfolioUrl} target="_blank" rel="noreferrer">portfolio</a>
       </div>
 
       {#if status}
@@ -127,24 +144,30 @@
 <style>
   .wrap { display: grid; gap: 14px; }
 
-  .k {
+  .eyebrow {
     font-family: ui-monospace, Menlo, Consolas, monospace;
     font-size: 12px;
-    color: rgba(245,245,245,0.55);
-  }
-
-  h1 {
-    margin: 6px 0 6px 0;
-    font-family: 'HACKED', ui-monospace, Menlo, Consolas, monospace;
-    color: rgba(204,102,102,0.95);
     letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(245,245,245,0.58);
   }
 
-  p {
-    margin: 0;
+  .t {
+    margin-top: 7px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: 0.4px;
+    color: rgba(228,90,90,0.95);
+  }
+
+  .s {
+    margin-top: 8px;
     font-family: ui-monospace, Menlo, Consolas, monospace;
     color: rgba(245,245,245,0.72);
     font-size: 13px;
+    line-height: 1.5;
+    max-width: 66ch;
   }
 
   .card {
