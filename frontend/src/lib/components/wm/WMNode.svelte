@@ -4,7 +4,7 @@
   import WMNode from "./WMNode.svelte";
   import WindowFrame from "./WindowFrame.svelte";
 
-  const props = $props<{ node: Node }>();
+  const props = $props<{ node?: Node }>();
 
   let box = $state<HTMLDivElement | null>(null);
   let w = $state(0);
@@ -58,7 +58,9 @@
 </script>
 
 <div class="nodeBox" bind:this={box}>
-  {#if props.node.type === "leaf"}
+  {#if !props.node}
+    <div class="nodeEmpty"></div>
+  {:else if props.node.type === "leaf"}
     <WindowFrame winId={props.node.winId} />
   {:else}
     {@const dir = modeToDir(props.node.mode, w, h)}
@@ -85,6 +87,7 @@
 
 <style>
   .nodeBox { width: 100%; height: 100%; min-width: 0; min-height: 0; }
+  .nodeEmpty { width: 100%; height: 100%; }
 
   .split {
     width: 100%;

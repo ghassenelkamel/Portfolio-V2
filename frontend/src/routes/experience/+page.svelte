@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { fade, fly, scale } from "svelte/transition";
+  import { fade } from "svelte/transition";
+  import { page } from "$app/stores";
 
   type Job = {
     key: string;
@@ -35,23 +36,68 @@
 
   const { data } = $props<{ data: { content?: ExperienceContent } }>();
   const content = $derived.by(() => data?.content ?? {});
+  const isFr = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr"));
+
+  const ui = $derived.by(() => isFr
+    ? {
+        title: "Experience",
+        eyebrow: "Experience",
+        fallbackTitle: "Parcours professionnel",
+        fallbackDesc: "Sélectionnez une expérience pour explorer le périmètre, l'impact et les outils utilisés.",
+        company: "Entreprise",
+        period: "Période",
+        location: "Lieu",
+        highlights: "Points cles",
+        openProof: "ouvrir la preuve",
+        clickToExpand: "cliquer pour agrandir",
+        openPreviewFor: "Ouvrir l'aperçu image pour",
+        close: "fermer"
+      }
+    : {
+        title: "Experience",
+        eyebrow: "Experience",
+        fallbackTitle: "Professional Journey",
+        fallbackDesc: "Select an experience to explore scope, impact, and tools used.",
+        company: "Company",
+        period: "Period",
+        location: "Location",
+        highlights: "Highlights",
+        openProof: "open proof",
+        clickToExpand: "click to expand",
+        openPreviewFor: "Open image preview for",
+        close: "close"
+      });
 
   const fallbackJobs: Job[] = [
     {
-      key: "bookbeo",
+      key: "spade-integrity-2024",
+      title: "IoT Engineer",
+      org: "Spade Integrity",
+      dates: "May 2024 - Present · 2 yrs 1 mo",
+      location: "On-site",
+      summary: [
+        "Contribute to client platform development with focus on reliability, security, and operational continuity.",
+        "Work on secure data recovery flows, NAS integration, and synchronization systems for alarms and critical data.",
+        "Support end-to-end IoT/backend delivery by improving data pipelines, monitoring quality, and secure service integrations."
+      ],
+      bullets: ["Go", "IoT platform", "Secure data recovery", "NAS integration", "Alarm synchronization", "Monitoring", "Infrastructure"],
+      img: "/assets/spade-integrity.svg"
+    },
+    {
+      key: "bookbeo-2023",
       title: "Full Stack Mobile Developer",
       org: "bookBeo",
-      dates: "Mar 2023 – Present",
-      location: "Rennes, France · On-site",
+      dates: "Mar 2023 - Sep 2023 · 7 mos",
+      location: "Rennes, Brittany, France · On-site",
       summary: [
-        "Led React Native features with a backend-aware approach to keep product behavior stable end-to-end.",
-        "Focused on runtime performance, release quality, and reliable delivery across fast iteration cycles."
+        "Developed mobile product features and backend-connected workflows during internship delivery cycles.",
+        "Collaborated on release quality and implementation speed with structured team practices and version control discipline."
       ],
-      bullets: ["React Native", "Product delivery", "Performance", "Feature ownership"],
+      bullets: ["GitLab", "Git", "React Native", "API integration", "Product delivery", "Performance", "Team collaboration"],
       img: "/assets/p7.jpg"
     },
     {
-      key: "st",
+      key: "st-2022",
       title: "Security Project Team Member",
       org: "STMicroelectronics",
       dates: "Sep 2022 – Mar 2023",
@@ -64,7 +110,7 @@
       img: "/assets/p6.jpg"
     },
     {
-      key: "falcon",
+      key: "falcon-2022",
       title: "Mobile Developer Experience",
       org: "Falcon Inspection & Services",
       dates: "Jun 2022 – Aug 2022",
@@ -90,7 +136,7 @@
       img: "/assets/p1.jpg"
     },
     {
-      key: "sagemcom",
+      key: "sagemcom-2020",
       title: "Electronic Components Validation",
       org: "SAGEMCOM",
       dates: "Feb 2020 – May 2020",
@@ -131,27 +177,57 @@
     }
   ];
 
-  const contentItems: ExperienceItem[] = Array.isArray(content.items) ? content.items : [];
+  const jobs = $derived.by<Job[]>(() => {
+    const items: ExperienceItem[] = Array.isArray(content.items) ? content.items : [];
+    const jobsFromContent = items
+      .slice()
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .map((item) => ({
+        key: item.id,
+        title: item.role,
+        org: item.org,
+        dates: item.dates,
+        location: item.location,
+        summary: Array.isArray(item.summary) ? item.summary : [],
+        bullets: Array.isArray(item.bullets) ? item.bullets : [],
+        img: item.image,
+        link: item.proofUrl
+      }))
+      .filter((item) => item.key && item.title && item.org && item.dates && item.location && item.summary.length);
 
-  const jobsFromContent: Job[] = contentItems
-    .slice()
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-    .map((item) => ({
-      key: item.id,
-      title: item.role,
-      org: item.org,
-      dates: item.dates,
-      location: item.location,
-      summary: Array.isArray(item.summary) ? item.summary : [],
-      bullets: Array.isArray(item.bullets) ? item.bullets : [],
-      img: item.image,
-      link: item.proofUrl
-    }))
-    .filter((item) => item.key && item.title && item.org && item.dates && item.location && item.summary.length);
+    if (!jobsFromContent.length) return fallbackJobs;
 
-  const jobs: Job[] = jobsFromContent.length ? jobsFromContent : fallbackJobs;
+    const byKey = new Map<string, Job>(fallbackJobs.map((j) => [j.key, j]));
+    for (const j of jobsFromContent) byKey.set(j.key, j);
 
-  let selected = $state<Job>(jobs[0]);
+    const merged = [...byKey.values()];
+
+    const orderByFallback = new Map(fallbackJobs.map((j, i) => [j.key, i]));
+    merged.sort((a, b) => {
+      const ia = orderByFallback.get(a.key);
+      const ib = orderByFallback.get(b.key);
+      if (ia != null && ib != null) return ia - ib;
+      if (ia != null) return -1;
+      if (ib != null) return 1;
+      return a.key.localeCompare(b.key);
+    });
+
+    return merged;
+  });
+
+  let selectedKey = $state<string>(fallbackJobs[0].key);
+
+  $effect(() => {
+    if (!jobs.length) return;
+    if (!jobs.some((j) => j.key === selectedKey)) {
+      selectedKey = jobs[0].key;
+    }
+  });
+
+  const selected = $derived.by(() => {
+    if (!jobs.length) return fallbackJobs[0];
+    return jobs.find((j) => j.key === selectedKey) ?? jobs[0];
+  });
   let modalOpen = $state(false);
   let modalSrc = $state("");
   let modalAlt = $state("");
@@ -174,6 +250,10 @@
   }
 
   function onThumbMove(e: PointerEvent) {
+    if (typeof window !== "undefined" && window.matchMedia("(hover: none), (pointer: coarse)").matches) {
+      return;
+    }
+
     const el = e.currentTarget as HTMLElement;
     const r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) return;
@@ -216,17 +296,14 @@
   }
 
   function pick(k: string) {
-    const j = jobs.find((x) => x.key === k);
-    if (j) {
-      selected = j;
-      closeImageModal();
-      resetThumbMotion();
-    }
+    selectedKey = k;
+    closeImageModal();
+    resetThumbMotion();
   }
 </script>
 
 <svelte:head>
-  <title>Experience</title>
+  <title>{ui.title}</title>
 </svelte:head>
 
 <svelte:window onkeydown={onWindowKeydown} />
@@ -234,9 +311,9 @@
 <div class="grid">
   <aside class="left">
     <div class="hdr">
-      <div class="eyebrow">{content.eyebrow || "Experience"}</div>
-      <div class="t">{content.title || "Professional Journey"}</div>
-      <div class="s">{content.description || "Select an experience to explore scope, impact, and tools used."}</div>
+      <div class="eyebrow">{content.eyebrow || ui.eyebrow}</div>
+      <div class="t">{content.title || ui.fallbackTitle}</div>
+      <div class="s">{content.description || ui.fallbackDesc}</div>
     </div>
 
     <div class="list" role="list">
@@ -258,65 +335,65 @@
   <section class="right">
     <div class="topStats">
       <div class="stat">
-        <div class="k">Company</div>
+        <div class="k">{ui.company}</div>
         <div class="v">{selected.org}</div>
       </div>
       <div class="stat">
-        <div class="k">Period</div>
+        <div class="k">{ui.period}</div>
         <div class="v">{selected.dates}</div>
       </div>
       <div class="stat">
-        <div class="k">Location</div>
+        <div class="k">{ui.location}</div>
         <div class="v">{selected.location}</div>
       </div>
     </div>
 
     {#key selected.key}
-      <article class="card" in:fade={{ duration: 210 }} out:fade={{ duration: 120 }}>
+      <article class="card">
         <div class="cardGlow" aria-hidden="true"></div>
 
-        <div class="cardHead" in:fly={{ y: 10, duration: 260 }}>
+        <div class="cardHead">
           <div class="title">
             <div class="big">{selected.title}</div>
             <div class="small"><span class="org">@{selected.org}</span> · {selected.location}</div>
           </div>
 
           {#if selected.link}
-            <a class="link" href={selected.link} target="_blank" rel="noreferrer">open proof</a>
+            <a class="link" href={selected.link} target="_blank" rel="noreferrer">{ui.openProof}</a>
           {/if}
         </div>
 
         <div class="body">
           <div class="text">
-            <div class="label">Highlights</div>
+            <div class="label">{ui.highlights}</div>
 
             {#each selected.summary as p, i (i)}
-              <p in:fly={{ y: 8, delay: 80 + i * 55, duration: 280 }}>{p}</p>
+              <p>{p}</p>
             {/each}
 
             {#if selected.bullets?.length}
               <div class="bul">
                 {#each selected.bullets as b, i (b)}
-                  <span in:scale={{ start: 0.96, duration: 220, delay: 140 + i * 35 }}>{b}</span>
+                  <span>{b}</span>
                 {/each}
               </div>
             {/if}
           </div>
 
           {#if selected.img}
-            <figure class="thumb" aria-label="Experience preview" in:scale={{ start: 0.97, duration: 300 }}>
+            <figure class="thumb" aria-label="Experience preview">
               <button
                 type="button"
                 class="thumbBtn"
-                aria-label={`Open image preview for ${selected.title}`}
-                title="Click to enlarge"
+                aria-label={`${ui.openPreviewFor} ${selected.title}`}
+                title={ui.clickToExpand}
                 onclick={() => openImageModal(selected)}
                 onpointermove={onThumbMove}
                 onpointerleave={onThumbLeave}
                 style={`--rx:${thumbRx}deg; --ry:${thumbRy}deg; --tx:${thumbTx}px; --ty:${thumbTy}px; --lx:${thumbLx}%; --ly:${thumbLy}%;`}
               >
                 <img class="thumbImg" src={selected.img} alt={selected.title} loading="eager" decoding="async" />
-                <span class="zoomHint">click to expand</span>
+                <span class="zoomHint">{ui.clickToExpand}</span>
               </button>
               <figcaption>{selected.org}</figcaption>
             </figure>
@@ -341,8 +418,8 @@
     in:fade={{ duration: 150 }}
     out:fade={{ duration: 100 }}
   >
-    <div class="lightboxInner" in:scale={{ start: 0.95, duration: 190 }}>
-      <button type="button" class="lightboxClose" onclick={closeImageModal}>close</button>
+    <div class="lightboxInner">
+      <button type="button" class="lightboxClose" onclick={closeImageModal}>{ui.close}</button>
       <img class="lightboxImg" src={modalSrc} alt={modalAlt} loading="eager" decoding="async" />
       <div class="lightboxCap">{modalCaption}</div>
     </div>
@@ -822,14 +899,32 @@
   @media (max-width: 980px) {
     .grid {
       grid-template-columns: 1fr;
+      min-height: auto;
     }
 
     .list {
       max-height: 340px;
     }
 
+    .topStats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cardHead {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .link {
+      align-self: flex-start;
+    }
+
     .body {
       grid-template-columns: 1fr;
+    }
+
+    .text p {
+      max-width: none;
     }
 
     .thumb {
@@ -851,6 +946,67 @@
     .lightboxInner {
       width: 100%;
       max-height: 92vh;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .left,
+    .right,
+    .card,
+    .stat,
+    .item,
+    .thumb {
+      border-radius: 12px;
+    }
+
+    .right {
+      padding: 10px;
+      gap: 10px;
+    }
+
+    .topStats {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .cardHead,
+    .body {
+      padding: 12px;
+    }
+
+    .big {
+      font-size: 14px;
+    }
+
+    .small,
+    .stat .v {
+      font-size: 12px;
+    }
+
+    .thumb,
+    .thumbBtn,
+    .thumbImg {
+      min-height: 220px;
+    }
+
+    .lightboxClose {
+      padding: 8px 12px;
+    }
+
+    .lightboxCap {
+      font-size: 11px;
+    }
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .thumbImg {
+      transform: none;
+      transition: filter 0.22s ease;
+    }
+
+    .zoomHint {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 

@@ -124,7 +124,7 @@ func (a *API) profileSummary(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) contentAbout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("cache-control", "public, max-age=120")
-	data, err := a.contentSvc.GetAbout(r.Context())
+	data, err := a.contentSvc.GetAbout(r.Context(), r.URL.Query().Get("lang"))
 	resp := map[string]any{"ok": err == nil, "data": data}
 	if err != nil {
 		resp["error"] = err.Error()
@@ -134,7 +134,7 @@ func (a *API) contentAbout(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) contentSkills(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("cache-control", "public, max-age=120")
-	data, err := a.contentSvc.GetSkills(r.Context())
+	data, err := a.contentSvc.GetSkills(r.Context(), r.URL.Query().Get("lang"))
 	resp := map[string]any{"ok": err == nil, "data": data}
 	if err != nil {
 		resp["error"] = err.Error()
@@ -144,7 +144,7 @@ func (a *API) contentSkills(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) contentExperience(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("cache-control", "public, max-age=120")
-	data, err := a.contentSvc.GetExperience(r.Context())
+	data, err := a.contentSvc.GetExperience(r.Context(), r.URL.Query().Get("lang"))
 	resp := map[string]any{"ok": err == nil, "data": data}
 	if err != nil {
 		resp["error"] = err.Error()
@@ -154,7 +154,7 @@ func (a *API) contentExperience(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) contentContact(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("cache-control", "public, max-age=120")
-	data, err := a.contentSvc.GetContact(r.Context())
+	data, err := a.contentSvc.GetContact(r.Context(), r.URL.Query().Get("lang"))
 	resp := map[string]any{"ok": err == nil, "data": data}
 	if err != nil {
 		resp["error"] = err.Error()

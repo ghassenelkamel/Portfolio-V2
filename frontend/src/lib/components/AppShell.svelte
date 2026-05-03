@@ -1,5 +1,6 @@
 <script lang="ts">
   import { browser } from "$app/environment";
+  import { onMount } from "svelte";
   import "$lib/appshell.css";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
@@ -11,13 +12,13 @@
 
   type WSKey = "terminal" | "about" | "experience" | "work" | "skills" | "contact";
 
-  const workspaces: { key: WSKey; n: number; label: string; href: string; hint: string }[] = [
-    { key: "terminal", n: 1, label: "Terminal", href: "/", hint: "Window manager" },
-    { key: "about", n: 2, label: "About", href: "/about", hint: "Profile summary" },
-    { key: "experience", n: 3, label: "Experience", href: "/experience", hint: "Timeline and roles" },
-    { key: "work", n: 4, label: "Work", href: "/work", hint: "Projects and repos" },
-    { key: "skills", n: 5, label: "Skills", href: "/skills", hint: "Live skill monitor" },
-    { key: "contact", n: 6, label: "Contact", href: "/contact", hint: "Reach out" }
+  const workspaces: { key: WSKey; n: number; label: string; href: string }[] = [
+    { key: "terminal", n: 1, label: "Terminal", href: "/" },
+    { key: "about", n: 2, label: "About", href: "/about" },
+    { key: "experience", n: 3, label: "Experience", href: "/experience" },
+    { key: "work", n: 4, label: "Work", href: "/work" },
+    { key: "skills", n: 5, label: "Skills", href: "/skills" },
+    { key: "contact", n: 6, label: "Contact", href: "/contact" }
   ];
 
   const routeToWS: Record<string, WSKey> = {
@@ -30,12 +31,61 @@
   };
 
   const active = $derived(routeToWS[$page.url.pathname] ?? "terminal");
+  const activeLang = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr") ? "fr" : "en");
+  const isFr = $derived(activeLang === "fr");
+
+  const workspaceHints = $derived.by(() => isFr
+    ? {
+        terminal: "Gestionnaire de fenêtres",
+        about: "Résumé du profil",
+        experience: "Parcours et rôles",
+        work: "Projets et dépôts",
+        skills: "Moniteur de compétences",
+        contact: "Me contacter"
+      }
+    : {
+        terminal: "Window manager",
+        about: "Profile summary",
+        experience: "Timeline and roles",
+        work: "Projects and repos",
+        skills: "Live skill monitor",
+        contact: "Reach out"
+      });
+
+  const langStateLabel = $derived(isFr ? `${activeLang.toUpperCase()} sélectionnée` : `${activeLang.toUpperCase()} selected`);
+  const kbHintLabel = $derived.by(() => isFr
+    ? {
+      terminal: "Terminal",
+      runCommands: "exécutez des commandes comme",
+      switchWs: "Changer d'espace",
+      switchSuffix: "(ou Ctrl+Shift+1..6)",
+      joinOr: "ou"
+    }
+  : {
+      terminal: "Terminal",
+      runCommands: "run commands like",
+      switchWs: "Switch WS",
+      switchSuffix: "(or Ctrl+Shift+1..6)",
+      joinOr: "or"
+    });
 
   const navSourceStorageKey = "kagha:last-ws-source";
+  let showKbHint = $state(false);
+  let hintClosing = $state(false);
+
+  function dismissHint() {
+    if (!showKbHint || hintClosing) return;
+    hintClosing = true;
+    setTimeout(() => {
+      showKbHint = false;
+      hintClosing = false;
+    }, 280);
+  }
 
   function openWS(ws: WSKey) {
     const w = workspaces.find((x) => x.key === ws);
     if (!w) return;
+    if (w.key === active) return;
 
     if (browser) {
       const cur = workspaces.find((x) => x.key === active);
@@ -48,8 +98,51 @@
       }
     }
 
-    void goto(w.href);
+    const href = activeLang === "fr" ? `${w.href}?lang=fr` : w.href;
+    void goto(href, { keepFocus: true, noScroll: true, invalidateAll: false });
   }
+
+  function switchLang(lang: "en" | "fr") {
+    if (lang === activeLang) return;
+    const target = lang === "fr" ? `${$page.url.pathname}?lang=fr` : $page.url.pathname;
+    void goto(target, { keepFocus: true, noScroll: true, invalidateAll: true });
+  }
+
+  onMount(() => {
+    showKbHint = true;
+    const auto = setTimeout(dismissHint, 5200);
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return;
+
+      if (e.key === "Escape") {
+        dismissHint();
+        return;
+      }
+
+      const k = e.key;
+      if (!/^[1-6]$/.test(k)) return;
+
+      const byAlt = e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey;
+      const byCtrlShift = e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey;
+      if (!byAlt && !byCtrlShift) return;
+
+      e.preventDefault();
+      const n = Number(k);
+      const ws = workspaces.find((w) => w.n === n);
+      if (!ws) return;
+
+      dismissHint();
+      openWS(ws.key);
+    };
+
+    window.addEventListener("keydown", onKey, { capture: true });
+
+    return () => {
+      clearTimeout(auto);
+      window.removeEventListener("keydown", onKey, { capture: true });
+    };
+  });
 
   const isWM = $derived($page.url.pathname === "/");
 </script>
@@ -121,7 +214,7 @@
           class={"ws " + (ws.key === active ? "wsActive" : "")}
           onclick={() => openWS(ws.key)}
           aria-current={ws.key === active ? "page" : undefined}
-          title={ws.hint}
+          title={workspaceHints[ws.key]}
         >
           <span class="wsIcon" aria-hidden="true">
             {#if ws.key === "terminal"}
@@ -167,12 +260,24 @@
     </nav>
 
     <div class="barRight">
+      <div class="langSwitch" role="group" aria-label="Language">
+        <button type="button" class={"langBtn " + (activeLang === "en" ? "active" : "")} onclick={() => switchLang("en")}>EN</button>
+        <button type="button" class={"langBtn " + (activeLang === "fr" ? "active" : "")} onclick={() => switchLang("fr")}>FR</button>
+      </div>
+      <span class="langState">{langStateLabel}</span>
       <a class="link" href="https://linkedin.com/in/ghassenelkamel" target="_blank" rel="noreferrer">linkedin</a>
       <a class="link" href="https://github.com/ghassenelkamel" target="_blank" rel="noreferrer">github</a>
     </div>
   </header>
 
   <main class="content">
+    {#if showKbHint}
+      <div class={"kbHint " + (hintClosing ? "out" : "")}> 
+        <div class="hintLine"><span class="hintKey">{kbHintLabel.terminal}</span> {kbHintLabel.runCommands} <span class="hintCmd">./AboutMe</span> {kbHintLabel.joinOr} <span class="hintCmd">exec Work</span></div>
+        <div class="hintLine"><span class="hintKey">{kbHintLabel.switchWs}</span> <span class="hintCmd">Alt+1..6</span> <span class="hintMuted">{kbHintLabel.switchSuffix}</span></div>
+      </div>
+    {/if}
+
     {#if isWM}
       <WindowManager />
     {:else}

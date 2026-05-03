@@ -178,9 +178,7 @@
   display: inline-block;
   isolation: isolate;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
 
@@ -221,6 +219,77 @@
   opacity: 0.08;
   mix-blend-mode: overlay;
   animation: kaghaScan 1.1s steps(2, end) infinite;
+}
+
+.kaghaGameWrap {
+  position: relative;
+  display: inline-block;
+  transition: height 160ms ease;
+}
+
+.kaghaHit.scarred .kaghaGameWrap {
+  width: var(--game-w, auto);
+  height: var(--game-h, auto);
+  overflow: hidden;
+}
+
+.kaghaHit.scarred .kaghaAscii.base {
+  opacity: 0;
+}
+
+.kaghaHit.scarred .kaghaAscii.layer {
+  opacity: 0;
+}
+
+.kaghaGameCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.kaghaHit.scarred .kaghaGameCanvas {
+  opacity: 1;
+}
+
+.kaghaGameHud {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+  font-size: 10px;
+  letter-spacing: 0.25px;
+  color: rgba(255, 238, 232, 0.92);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.kaghaHit.scarred .kaghaGameHud {
+  opacity: 1;
+}
+
+.kaghaWinTag {
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(227, 96, 96, 0.32);
+  color: rgba(255, 232, 228, 0.95);
+}
+
+.kaghaPauseTag {
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(247, 247, 247, 0.9);
 }
 
 @keyframes kaghaScan {
@@ -433,12 +502,15 @@
 }
 
 .cmdText {
-  margin-left: 8px;
+  display: inline-block;
+  margin-left: 0;
+  padding-left: 0;
   color: rgba(255, 255, 255, 0.92);
+  white-space: pre-wrap;
 }
 
 .term.embedded .cmdText {
-  margin-left: 4px;
+  padding-left: 0;
 }
 
 .inputLayer {

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { page } from "$app/stores";
+
   type Summary = {
     headline: string;
     subtitle: string;
@@ -14,6 +16,34 @@
   let loading = $state(true);
   let err = $state<string | null>(null);
   let s = $state<Summary | null>(null);
+  const langQuery = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr") ? "?lang=fr" : "");
+  const isFr = $derived(langQuery === "?lang=fr");
+
+  const ui = $derived.by(() => isFr
+    ? {
+        title: "À propos",
+        loading: "chargement...",
+        error: "erreur:",
+        about: "À propos",
+        specialties: "Specialites",
+        currently: "Actuellement",
+        goals: "Objectifs",
+        email: "email",
+        site: "site",
+        github: "github"
+      }
+    : {
+        title: "About",
+        loading: "loading...",
+        error: "error:",
+        about: "About",
+        specialties: "Specialties",
+        currently: "Currently",
+        goals: "Goals",
+        email: "email",
+        site: "site",
+        github: "github"
+      });
 
   const fallback: Summary = {
     headline: "Ghassen El Kamel",
@@ -32,7 +62,7 @@
       try {
         loading = true;
         err = null;
-        const res = await fetch("/api/content/about");
+        const res = await fetch(`/api/content/about${langQuery}`);
         const j = await res.json();
         const d = (j?.data ?? {}) as Partial<Summary>;
         s = {
@@ -44,7 +74,7 @@
           goals: Array.isArray(d.goals) ? d.goals : fallback.goals
         };
       } catch (e: any) {
-        err = e?.message ?? "failed";
+        err = e?.message ?? (isFr ? "echec" : "failed");
       } finally {
         loading = false;
       }
@@ -55,37 +85,37 @@
 <div class="surface">
   <div class="hdr">
     <div class="k">/about</div>
-    <h1>{s?.headline ?? "About"}</h1>
+    <h1>{s?.headline ?? ui.title}</h1>
     <p>{s?.subtitle ?? "—"}</p>
   </div>
 
   {#if loading}
-    <div class="muted">loading…</div>
+    <div class="muted">{ui.loading}</div>
   {:else if err}
-    <div class="muted">error: {err}</div>
+    <div class="muted">{ui.error} {err}</div>
   {:else if s}
     <div class="grid">
       <div class="card">
-        <div class="label">About</div>
+        <div class="label">{ui.about}</div>
         {#each s.summary as line (line)}
           <div class="p">{line}</div>
         {/each}
 
-        <div class="label label2">Specialties</div>
+        <div class="label label2">{ui.specialties}</div>
         {#each s.specialties as line (line)}
           <div class="li">{line}</div>
         {/each}
       </div>
 
       <div class="card">
-        <div class="label">Currently</div>
+        <div class="label">{ui.currently}</div>
         {#each s.currently as line (line)}
           <div class="li">{line}</div>
         {/each}
       </div>
 
       <div class="card">
-        <div class="label">Goals</div>
+        <div class="label">{ui.goals}</div>
         {#each s.goals as line (line)}
           <div class="li">{line}</div>
         {/each}
@@ -93,9 +123,9 @@
         <div class="sep"></div>
 
         <div class="kv">
-          <div><span class="k2">email</span> {s.email ?? "-"}</div>
-          <div><span class="k2">site</span> {s.site ?? "-"}</div>
-          <div><span class="k2">github</span> {s.github ?? "-"}</div>
+          <div><span class="k2">{ui.email}</span> {s.email ?? "-"}</div>
+          <div><span class="k2">{ui.site}</span> {s.site ?? "-"}</div>
+          <div><span class="k2">{ui.github}</span> {s.github ?? "-"}</div>
         </div>
       </div>
     </div>

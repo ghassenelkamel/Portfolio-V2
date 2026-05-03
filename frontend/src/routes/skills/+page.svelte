@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/stores";
   import { onDestroy, onMount } from "svelte";
 
   type SkillContent = {
@@ -17,18 +18,47 @@
 
   const { data } = $props<{ data: { content?: SkillsContent } }>();
   const content = $derived.by(() => data?.content ?? {});
-  const baseItems = Array.isArray(content.items) && content.items.length
-    ? [...content.items].sort((a, b) => a.order - b.order)
-    : [
-        { id: "go", name: "Go (Backend)", level: 88, order: 1 },
-        { id: "mqtt-vpn-tls", name: "MQTT / VPN / TLS", level: 86, order: 2 },
-        { id: "linux", name: "Linux / Unix", level: 86, order: 3 },
-        { id: "postgresql", name: "PostgreSQL", level: 82, order: 4 },
-        { id: "docker", name: "Docker", level: 78, order: 5 },
-        { id: "javascript-svelte", name: "JavaScript / Svelte", level: 78, order: 6 },
-        { id: "c-cpp", name: "C / C++", level: 72, order: 7 },
-        { id: "python", name: "Python", level: 70, order: 8 }
-      ];
+  const isFr = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr"));
+
+  const ui = $derived.by(() => isFr
+    ? {
+        title: "Competences",
+        fallbackEyebrow: "Competences",
+        fallbackHeader: "Moniteur de capacites",
+        fallbackDesc: "Suivi des niveaux de maitrise sur les outils et technologies cles.",
+        avg: "moy",
+        peak: "pic",
+        uptime: "actif",
+        dashboardAria: "Tableau de bord des competences en direct"
+      }
+    : {
+        title: "Skills",
+        fallbackEyebrow: "Skills",
+        fallbackHeader: "Capability Monitor",
+        fallbackDesc: "Track live proficiency signals across core tools and technologies.",
+        avg: "avg",
+        peak: "peak",
+        uptime: "uptime",
+        dashboardAria: "Live skills dashboard"
+      });
+  const fallbackItems: SkillContent[] = [
+    { id: "go", name: "Go (Backend)", level: 88, order: 1 },
+    { id: "mqtt-vpn-tls", name: "MQTT / VPN / TLS", level: 86, order: 2 },
+    { id: "linux", name: "Linux / Unix", level: 86, order: 3 },
+    { id: "postgresql", name: "PostgreSQL", level: 82, order: 4 },
+    { id: "docker", name: "Docker", level: 78, order: 5 },
+    { id: "javascript-svelte", name: "JavaScript / Svelte", level: 78, order: 6 },
+    { id: "c-cpp", name: "C / C++", level: 72, order: 7 },
+    { id: "python", name: "Python", level: 70, order: 8 }
+  ];
+
+  const baseItems = $derived.by<SkillContent[]>(() => {
+    const items = content.items;
+    if (Array.isArray(items) && items.length) {
+      return [...items].sort((a, b) => a.order - b.order);
+    }
+    return fallbackItems;
+  });
 
   type LiveSkill = {
     name: string;
@@ -42,8 +72,8 @@
   let uptime = $state(0);
   let timer: ReturnType<typeof setInterval> | null = null;
 
-  let skills = $state<LiveSkill[]>(
-    [...baseItems]
+  function toLiveSkills(items: SkillContent[]): LiveSkill[] {
+    return [...items]
       .sort((a, b) => b.level - a.level)
       .map((s) => {
         const v = Math.round(s.level);
@@ -53,8 +83,16 @@
           live: v,
           history: Array.from({ length: points }, () => v)
         };
-      })
-  );
+      });
+  }
+
+  let skills = $state<LiveSkill[]>([]);
+
+  $effect(() => {
+    skills = toLiveSkills(baseItems);
+    tick = 0;
+    uptime = 0;
+  });
 
   function clamp(v: number, a: number, b: number) {
     return Math.max(a, Math.min(b, v));
@@ -103,22 +141,22 @@
 </script>
 
 <svelte:head>
-  <title>Skills</title>
+  <title>{ui.title}</title>
 </svelte:head>
 
 <div class="wrap">
   <header class="title">
-    <div class="eyebrow">{content.eyebrow || "Skills"}</div>
-    <div class="t">{content.title || "Capability Monitor"}</div>
-    <div class="s">{content.description || "Track live proficiency signals across core tools and technologies."}</div>
+    <div class="eyebrow">{content.eyebrow || ui.fallbackEyebrow}</div>
+    <div class="t">{content.title || ui.fallbackHeader}</div>
+    <div class="s">{content.description || ui.fallbackDesc}</div>
     <div class="meta">
-      <span>avg {avg}%</span>
-      <span>peak {peak?.name ?? "-"}</span>
-      <span>uptime {fmtUptime(uptime)}</span>
+      <span>{ui.avg} {avg}%</span>
+      <span>{ui.peak} {peak?.name ?? "-"}</span>
+      <span>{ui.uptime} {fmtUptime(uptime)}</span>
     </div>
   </header>
 
-  <section class="board" aria-label="Live skills dashboard">
+  <section class="board" aria-label={ui.dashboardAria}>
     {#each skills as s, i (s.name)}
       <article class="row">
         <div class="head">
@@ -276,8 +314,54 @@
   }
 
   @media (max-width: 760px) {
+    .wrap {
+      gap: 12px;
+    }
+
+    .t {
+      font-size: 22px;
+    }
+
+    .s {
+      max-width: none;
+      font-size: 12px;
+    }
+
+    .meta {
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .board {
+      padding: 10px;
+      gap: 10px;
+    }
+
+    .head {
+      gap: 8px;
+    }
+
     .name {
       font-size: 12px;
+    }
+
+    .val {
+      font-size: 11px;
+    }
+
+    .meter {
+      height: 14px;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .left {
+      flex-wrap: wrap;
+      row-gap: 4px;
+    }
+
+    .idx {
+      font-size: 10px;
     }
   }
 </style>

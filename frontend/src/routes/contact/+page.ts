@@ -3,7 +3,9 @@ import type { PageLoad } from './$types';
 export const ssr = false;
 export const prerender = true;
 
-export const load: PageLoad = async ({ fetch }) => {
+export const load: PageLoad = async ({ fetch, url }) => {
+	const lang = (url.searchParams.get('lang') || '').toLowerCase().startsWith('fr') ? 'fr' : 'en';
+	const qs = lang === 'fr' ? '?lang=fr' : '';
 	const fallback = {
 		schemaVersion: 1,
 		updatedAt: new Date().toISOString(),
@@ -16,7 +18,7 @@ export const load: PageLoad = async ({ fetch }) => {
 		portfolio: 'https://ghassenelkamel.fr'
 	};
 
-	const res = await fetch('/api/content/contact');
+	const res = await fetch(`/api/content/contact${qs}`);
 	if (!res.ok) {
 		return { ok: false, content: fallback };
 	}

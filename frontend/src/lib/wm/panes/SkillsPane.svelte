@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/stores";
   import { onDestroy, onMount } from "svelte";
 
   type SkillContent = {
@@ -51,6 +52,26 @@
 
   let tick = 0;
   let timer: ReturnType<typeof setInterval> | null = null;
+  const langQuery = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr") ? "?lang=fr" : "");
+  const isFr = $derived(langQuery === "?lang=fr");
+
+  const ui = $derived.by(() => isFr
+    ? {
+        eyebrow: "Competences",
+        title: "Moniteur de capacites",
+        desc: "Suivi des niveaux de maitrise sur les outils et technologies cles.",
+        avg: "moy",
+        top: "top",
+        boardAria: "Moniteur de compétences en direct"
+      }
+    : {
+        eyebrow: "Skills",
+        title: "Capability Monitor",
+        desc: "Track live proficiency signals across core tools and technologies.",
+        avg: "avg",
+        top: "top",
+        boardAria: "Live skill monitor"
+      });
 
   function clamp(v: number, a: number, b: number) {
     return Math.max(a, Math.min(b, v));
@@ -71,10 +92,10 @@
     });
   }
 
-  onMount(() => {
+  $effect(() => {
     void (async () => {
       try {
-        const res = await fetch("/api/content/skills");
+        const res = await fetch(`/api/content/skills${langQuery}`);
         const j = await res.json();
         const d = (j?.data ?? {}) as SkillsContent;
         const items = Array.isArray(d.items) && d.items.length
@@ -82,9 +103,9 @@
           : fallbackItems;
 
         content = {
-          eyebrow: d.eyebrow || "Skills",
-          title: d.title || "Capability Monitor",
-          description: d.description || "Track live proficiency signals across core tools and technologies.",
+          eyebrow: d.eyebrow || ui.eyebrow,
+          title: d.title || ui.title,
+          description: d.description || ui.desc,
           items
         };
 
@@ -96,7 +117,9 @@
         // Keep fallback content.
       }
     })();
+  });
 
+  onMount(() => {
     timer = setInterval(step, 280);
   });
 
@@ -116,16 +139,16 @@
 
 <div class="pane">
   <header class="head">
-    <div class="eyebrow">{content.eyebrow || "Skills"}</div>
-    <div class="t">{content.title || "Capability Monitor"}</div>
-    <div class="s">{content.description || "Track live proficiency signals across core tools and technologies."}</div>
+    <div class="eyebrow">{content.eyebrow || ui.eyebrow}</div>
+    <div class="t">{content.title || ui.title}</div>
+    <div class="s">{content.description || ui.desc}</div>
     <div class="meta">
-      <span>avg {avg}%</span>
-      <span>top {top?.name ?? "-"}</span>
+      <span>{ui.avg} {avg}%</span>
+      <span>{ui.top} {top?.name ?? "-"}</span>
     </div>
   </header>
 
-  <section class="board" aria-label="Live skill monitor">
+  <section class="board" aria-label={ui.boardAria}>
     {#each skills as s (s.name)}
       <article class="row">
         <div class="rhead">

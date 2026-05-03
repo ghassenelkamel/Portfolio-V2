@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { page } from "$app/stores";
+
   type Repo = {
     id: number;
     name: string;
@@ -16,6 +18,73 @@
   type Rate = { limit: string; remaining: string; reset: string };
 
   let { data } = $props<{ data: any }>();
+  const isFr = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr"));
+
+  const ui = $derived.by(() => isFr
+    ? {
+        title: "Projets",
+        eyebrow: "Projets",
+        header: "Portfolio de projets",
+        subtitle: "Sélectionnez un dépôt pour explorer le périmètre, l'impact et les outils utilisés.",
+        repos: "Dépôts",
+        stars: "Étoiles",
+        showing: "Affichés",
+        api: "API",
+        search: "Rechercher (nom / description / langage)…",
+        clear: "effacer",
+        sort: "tri",
+        sortAria: "Trier les dépôts",
+        recent: "recent",
+        byStars: "étoiles",
+        byName: "nom",
+        toggleForks: "Afficher/masquer les dépôts fork",
+        forks: "forks",
+        toggleArchived: "Afficher/masquer les dépôts archivés",
+        archived: "archives",
+        reset: "réinitialiser",
+        topLanguages: "Langages principaux",
+        repoWord: "depots",
+        apiError: "Erreur API",
+        loading: "Chargement",
+        fetching: "Récupération des dépôts…",
+        noMatch: "Aucun résultat",
+        noMatchBody: "Aucun dépôt ne correspond aux filtres actuels.",
+        noDescription: "Aucune description.",
+        updated: "maj",
+        agoSuffix: "il y a"
+      }
+    : {
+        title: "Work",
+        eyebrow: "Work",
+        header: "Project Portfolio",
+        subtitle: "Select a repository to explore scope, impact, and tools used.",
+        repos: "Repos",
+        stars: "Stars",
+        showing: "Showing",
+        api: "API",
+        search: "Search (name / description / language)…",
+        clear: "clear",
+        sort: "sort",
+        sortAria: "Sort repositories",
+        recent: "recent",
+        byStars: "stars",
+        byName: "name",
+        toggleForks: "Toggle fork repositories",
+        forks: "forks",
+        toggleArchived: "Toggle archived repositories",
+        archived: "archived",
+        reset: "reset",
+        topLanguages: "Top languages",
+        repoWord: "repos",
+        apiError: "API error",
+        loading: "Loading",
+        fetching: "Fetching repositories…",
+        noMatch: "No match",
+        noMatchBody: "No repositories match your current filters.",
+        noDescription: "No description.",
+        updated: "updated",
+        agoSuffix: "ago"
+      });
 
   // IMPORTANT: use $derived.by for functions
   let repos = $derived.by((): Repo[] => {
@@ -60,17 +129,17 @@
 
     const diff = Date.now() - t;
     const sec = Math.floor(diff / 1000);
-    if (sec < 60) return `${sec}s ago`;
+    if (sec < 60) return isFr ? `${ui.agoSuffix} ${sec}s` : `${sec}s ${ui.agoSuffix}`;
     const min = Math.floor(sec / 60);
-    if (min < 60) return `${min}m ago`;
+    if (min < 60) return isFr ? `${ui.agoSuffix} ${min} min` : `${min}m ${ui.agoSuffix}`;
     const h = Math.floor(min / 60);
-    if (h < 48) return `${h}h ago`;
+    if (h < 48) return isFr ? `${ui.agoSuffix} ${h} h` : `${h}h ${ui.agoSuffix}`;
     const d = Math.floor(h / 24);
-    if (d < 30) return `${d}d ago`;
+    if (d < 30) return isFr ? `${ui.agoSuffix} ${d} j` : `${d}d ${ui.agoSuffix}`;
     const mo = Math.floor(d / 30);
-    if (mo < 18) return `${mo}mo ago`;
+    if (mo < 18) return isFr ? `${ui.agoSuffix} ${mo} mois` : `${mo}mo ${ui.agoSuffix}`;
     const y = Math.floor(mo / 12);
-    return `${y}y ago`;
+    return isFr ? `${ui.agoSuffix} ${y} an${y > 1 ? "s" : ""}` : `${y}y ${ui.agoSuffix}`;
   }
 
   let filteredSorted = $derived.by(() => {
@@ -121,33 +190,33 @@
 </script>
 
 <svelte:head>
-  <title>Work</title>
+  <title>{ui.title}</title>
 </svelte:head>
 
 <div class="wrap">
   <header class="hero">
     <div class="titleBlock">
-      <div class="eyebrow">Work</div>
-      <div class="t">Project Portfolio</div>
-      <div class="s">Select a repository to explore scope, impact, and tools used.</div>
+      <div class="eyebrow">{ui.eyebrow}</div>
+      <div class="t">{ui.header}</div>
+      <div class="s">{ui.subtitle}</div>
     </div>
 
     <div class="stats">
       <div class="stat">
-        <div class="statLabel">Repos</div>
+        <div class="statLabel">{ui.repos}</div>
         <div class="statVal">{repos.length}</div>
       </div>
       <div class="stat">
-        <div class="statLabel">Stars</div>
+        <div class="statLabel">{ui.stars}</div>
         <div class="statVal">{totalStars}</div>
       </div>
       <div class="stat">
-        <div class="statLabel">Showing</div>
+        <div class="statLabel">{ui.showing}</div>
         <div class="statVal">{filteredSorted.length}</div>
       </div>
       {#if rate}
         <div class="stat muted">
-          <div class="statLabel">API</div>
+          <div class="statLabel">{ui.api}</div>
           <div class="statVal">{rate.remaining}/{rate.limit}</div>
         </div>
       {/if}
@@ -160,22 +229,22 @@
       <input
         class="search"
         type="text"
-        placeholder="Search (name / description / language)…"
+        placeholder={ui.search}
         bind:value={q}
         spellcheck="false"
       />
       {#if q.trim().length}
-        <button type="button" class="miniBtn" onclick={() => (q = "")}>clear</button>
+        <button type="button" class="miniBtn" onclick={() => (q = "")}>{ui.clear}</button>
       {/if}
     </div>
 
     <div class="controls">
       <div class="selectWrap">
-        <span class="lbl">sort</span>
-        <select class="select" bind:value={sort} aria-label="Sort repositories">
-          <option value="recent">recent</option>
-          <option value="stars">stars</option>
-          <option value="name">name</option>
+        <span class="lbl">{ui.sort}</span>
+        <select class="select" bind:value={sort} aria-label={ui.sortAria}>
+          <option value="recent">{ui.recent}</option>
+          <option value="stars">{ui.byStars}</option>
+          <option value="name">{ui.byName}</option>
         </select>
       </div>
 
@@ -184,9 +253,9 @@
         class={"chip " + (includeForks ? "on" : "")}
         onclick={() => (includeForks = !includeForks)}
         aria-pressed={includeForks}
-        title="Toggle fork repositories"
+        title={ui.toggleForks}
       >
-        forks
+        {ui.forks}
       </button>
 
       <button
@@ -194,19 +263,19 @@
         class={"chip " + (includeArchived ? "on" : "")}
         onclick={() => (includeArchived = !includeArchived)}
         aria-pressed={includeArchived}
-        title="Toggle archived repositories"
+        title={ui.toggleArchived}
       >
-        archived
+        {ui.archived}
       </button>
 
-      <button type="button" class="chip ghost" onclick={resetFilters}>reset</button>
+      <button type="button" class="chip ghost" onclick={resetFilters}>{ui.reset}</button>
     </div>
   </section>
 
   {#if languages.length}
-    <section class="langRow" aria-label="Top languages">
+    <section class="langRow" aria-label={ui.topLanguages}>
       {#each languages as [lang, n] (lang)}
-        <span class="langChip" title={`${n} repos`}>
+        <span class="langChip" title={`${n} ${ui.repoWord}`}>
           <span class="dot" aria-hidden="true"></span>
           {lang}
           <span class="count">{n}</span>
@@ -216,14 +285,14 @@
   {/if}
 
   {#if error}
-    <div class="msg err">
-      <div class="msgTitle">API error</div>
+      <div class="msg err">
+      <div class="msgTitle">{ui.apiError}</div>
       <div class="msgBody">{error}</div>
     </div>
   {:else if repos.length === 0}
     <div class="msg">
-      <div class="msgTitle">Loading</div>
-      <div class="msgBody">Fetching repositories…</div>
+      <div class="msgTitle">{ui.loading}</div>
+      <div class="msgBody">{ui.fetching}</div>
       <div class="skeletonGrid">
         {#each Array(8) as _, i (i)}
           <div class="skCard"></div>
@@ -232,25 +301,25 @@
     </div>
   {:else if filteredSorted.length === 0}
     <div class="msg">
-      <div class="msgTitle">No match</div>
-      <div class="msgBody">No repositories match your current filters.</div>
+      <div class="msgTitle">{ui.noMatch}</div>
+      <div class="msgBody">{ui.noMatchBody}</div>
     </div>
   {:else}
     <div class="grid" role="list">
       {#each filteredSorted as r (r.id)}
-        <a class="card" role="listitem" href={r.html_url} target="_blank" rel="noreferrer">
+        <a class="card" href={r.html_url} target="_blank" rel="noreferrer">
           <div class="cardTop">
             <div class="nameRow">
               <div class="name">{r.name}</div>
               <div class="badges">
                 {#if r.language}<span class="badge">{r.language}</span>{/if}
                 {#if r.fork}<span class="badge dim">fork</span>{/if}
-                {#if r.archived}<span class="badge warn">archived</span>{/if}
+                {#if r.archived}<span class="badge warn">{ui.archived}</span>{/if}
               </div>
             </div>
 
             <div class={"desc " + (r.description ? "" : "dim")}>
-              {r.description ?? "No description."}
+              {r.description ?? ui.noDescription}
             </div>
           </div>
 
@@ -258,10 +327,10 @@
             <div class="meta">
               <span class="metaItem">★ {r.stargazers_count}</span>
               <span class="metaSep">·</span>
-              <span class="metaItem">forks {r.forks_count}</span>
+              <span class="metaItem">{ui.forks} {r.forks_count}</span>
             </div>
             <div class="meta dim">
-              updated {ago(r.pushed_at ?? r.updated_at)}
+              {ui.updated} {ago(r.pushed_at ?? r.updated_at)}
             </div>
           </div>
 
@@ -635,11 +704,67 @@
   .dim { color: rgba(245,245,245,0.52); }
 
   /* Responsive */
+  @media (max-width: 980px) {
+    .hero {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    .stats {
+      justify-content: flex-start;
+    }
+  }
+
   @media (max-width: 760px) {
     .hero { grid-template-columns: 1fr; }
     .stats { justify-content: flex-start; }
     .controlBar { grid-template-columns: 1fr; }
     .controls { justify-content: flex-start; }
+    .cardBot { flex-wrap: wrap; }
+    .meta { white-space: normal; }
+    .search { font-size: 16px; }
+  }
+
+  @media (max-width: 560px) {
+    .wrap {
+      gap: 10px;
+    }
+
+    .t {
+      font-size: 21px;
+    }
+
+    .searchWrap {
+      padding: 9px;
+    }
+
+    .controls {
+      gap: 6px;
+    }
+
+    .chip,
+    .miniBtn {
+      padding: 8px 10px;
+    }
+
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card {
+      border-radius: 14px;
+    }
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .card:hover {
+      transform: none;
+    }
+
+    .card .shine,
+    .card:hover .shine {
+      opacity: 0;
+    }
   }
 </style>
 

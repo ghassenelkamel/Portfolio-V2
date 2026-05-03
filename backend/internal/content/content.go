@@ -37,9 +37,9 @@ func NewService(cfg config.Config) *Service {
 	}
 }
 
-func (s *Service) GetAbout(ctx context.Context) (AboutDocument, error) {
+func (s *Service) GetAbout(ctx context.Context, lang string) (AboutDocument, error) {
 	fallback := DefaultAbout()
-	raw, err := s.loadRaw(ctx, "about.json", func(b []byte) error {
+	raw, err := s.loadLocalizedRaw(ctx, "about.json", lang, func(b []byte) error {
 		var d AboutDocument
 		if err := decodeStrict(b, &d); err != nil {
 			return err
@@ -60,9 +60,9 @@ func (s *Service) GetAbout(ctx context.Context) (AboutDocument, error) {
 	return out, nil
 }
 
-func (s *Service) GetSkills(ctx context.Context) (SkillsDocument, error) {
+func (s *Service) GetSkills(ctx context.Context, lang string) (SkillsDocument, error) {
 	fallback := DefaultSkills()
-	raw, err := s.loadRaw(ctx, "skills.json", func(b []byte) error {
+	raw, err := s.loadLocalizedRaw(ctx, "skills.json", lang, func(b []byte) error {
 		var d SkillsDocument
 		if err := decodeStrict(b, &d); err != nil {
 			return err
@@ -83,9 +83,10 @@ func (s *Service) GetSkills(ctx context.Context) (SkillsDocument, error) {
 	return out, nil
 }
 
-func (s *Service) GetExperience(ctx context.Context) (ExperienceDocument, error) {
+func (s *Service) GetExperience(ctx context.Context, lang string) (ExperienceDocument, error) {
 	fallback := DefaultExperience()
-	raw, err := s.loadRaw(ctx, "experience.json", func(b []byte) error {
+	s.resolveExperienceAssetURLs(&fallback)
+	raw, err := s.loadLocalizedRaw(ctx, "experience.json", lang, func(b []byte) error {
 		var d ExperienceDocument
 		if err := decodeStrict(b, &d); err != nil {
 			return err
@@ -103,12 +104,13 @@ func (s *Service) GetExperience(ctx context.Context) (ExperienceDocument, error)
 	if err := out.Validate(); err != nil {
 		return fallback, err
 	}
+	s.resolveExperienceAssetURLs(&out)
 	return out, nil
 }
 
-func (s *Service) GetContact(ctx context.Context) (ContactDocument, error) {
+func (s *Service) GetContact(ctx context.Context, lang string) (ContactDocument, error) {
 	fallback := DefaultContact()
-	raw, err := s.loadRaw(ctx, "contact.json", func(b []byte) error {
+	raw, err := s.loadLocalizedRaw(ctx, "contact.json", lang, func(b []byte) error {
 		var d ContactDocument
 		if err := decodeStrict(b, &d); err != nil {
 			return err
@@ -127,6 +129,47 @@ func (s *Service) GetContact(ctx context.Context) (ContactDocument, error) {
 		return fallback, err
 	}
 	return out, nil
+}
+
+func normalizeLang(v string) string {
+	v = strings.ToLower(strings.TrimSpace(v))
+	if v == "fr" || strings.HasPrefix(v, "fr-") {
+		return "fr"
+	}
+	return "en"
+}
+
+func localizedFiles(baseFile, lang string) []string {
+	if normalizeLang(lang) == "fr" && strings.HasSuffix(baseFile, ".json") {
+		stem := strings.TrimSuffix(baseFile, ".json")
+		return []string{stem + ".fr.json", baseFile}
+	}
+	return []string{baseFile}
+}
+
+func (s *Service) loadLocalizedRaw(ctx context.Context, baseFile, lang string, validate func([]byte) error) ([]byte, error) {
+	files := localizedFiles(baseFile, lang)
+	var lastErr error
+	for _, file := range files {
+		raw, err := s.loadRaw(ctx, file, validate)
+		if err == nil {
+			return raw, nil
+		}
+		lastErr = err
+	}
+	if lastErr == nil {
+		lastErr = errors.New("localized content fetch failed")
+	}
+	return nil, lastErr
+}
+
+func (s *Service) resolveExperienceAssetURLs(d *ExperienceDocument) {
+	for i := range d.Items {
+		img := strings.TrimSpace(d.Items[i].Image)
+		if strings.HasPrefix(img, "assets/") {
+			d.Items[i].Image = s.repoRawURL(img)
+		}
+	}
 }
 
 func (s *Service) loadRaw(ctx context.Context, file string, validate func([]byte) error) ([]byte, error) {
@@ -227,6 +270,11 @@ func (s *Service) rawURL(file string) string {
 	if dir := strings.Trim(s.cfg.ContentRepoDir, "/"); dir != "" {
 		p = path.Join(dir, file)
 	}
+	return s.repoRawURL(p)
+}
+
+func (s *Service) repoRawURL(repoPath string) string {
+	p := strings.TrimPrefix(strings.TrimSpace(repoPath), "/")
 
 	owner := strings.TrimSpace(s.cfg.ContentRepoOwner)
 	if owner == "" {

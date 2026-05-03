@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { page } from "$app/stores";
+
   type AboutContent = {
     headline?: string;
     subtitle?: string;
@@ -15,14 +17,53 @@
   const { data } = $props<{ data: { content?: AboutContent } }>();
   const content = $derived.by(() => data?.content ?? {});
 
-  const defaultKeywords = [
-    "IoT architecture",
-    "Go backend",
-    "Embedded Linux",
-    "MQTT / TLS",
-    "VPN networking",
-    "Automation APIs"
-  ];
+  const isFr = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr"));
+
+  const defaultKeywords = $derived.by(() => isFr
+    ? ["Architecture IoT", "Backend Go", "Linux embarque", "MQTT / TLS", "Reseaux VPN", "APIs d'automatisation"]
+    : ["IoT architecture", "Go backend", "Embedded Linux", "MQTT / TLS", "VPN networking", "Automation APIs"]);
+
+  const ui = $derived.by(() => isFr
+    ? {
+        title: "À propos",
+        kicker: "à propos",
+        copy: "copier",
+        copied: "copié",
+        clipboard: "Presse-papiers indisponible",
+        about: "À propos",
+        specialize: "Je me spécialise en",
+        noSpecialties: "Aucune spécialité configurée.",
+        currently: "Actuellement",
+        noCurrently: "Aucun element 'Actuellement'.",
+        goals: "Objectifs",
+        noGoals: "Aucun objectif renseigné.",
+        defaultIntro: "Je construis des systèmes fiables pour les produits connectés : connectivité sécurisée, flux de données propres et services backend robustes en production.",
+        emailLabel: "Email",
+        linkLabel: "Lien",
+        rowEmail: "courriel",
+        rowSite: "site",
+        rowGithub: "github"
+      }
+    : {
+        title: "About",
+        kicker: "about",
+        copy: "copy",
+        copied: "copied",
+        clipboard: "Clipboard not available",
+        about: "About",
+        specialize: "I specialize in",
+        noSpecialties: "No specialties configured.",
+        currently: "Currently",
+        noCurrently: "No 'Currently' items yet.",
+        goals: "Goals",
+        noGoals: "No 'Goals' items yet.",
+        defaultIntro: "I build reliable systems for connected products: secure connectivity, clean data flow, and backend services that hold up in production.",
+        emailLabel: "Email",
+        linkLabel: "Link",
+        rowEmail: "email",
+        rowSite: "site",
+        rowGithub: "github"
+      });
 
   const headline = $derived.by(() => content.headline || "Ghassen El Kamel");
   const subtitle = $derived.by(() => content.subtitle || "IoT & Systems Engineer · Backend · Infrastructure");
@@ -42,17 +83,17 @@
   async function copy(text: string, label: string) {
     try {
       await navigator.clipboard.writeText(text);
-      copied = `${label} copied`;
+      copied = `${label} ${ui.copied}`;
       setTimeout(() => (copied = null), 1200);
     } catch {
-      copied = "Clipboard not available";
+      copied = ui.clipboard;
       setTimeout(() => (copied = null), 1400);
     }
   }
 </script>
 
 <svelte:head>
-  <title>About</title>
+  <title>{ui.title}</title>
 </svelte:head>
 
 <div class="about">
@@ -60,7 +101,7 @@
     <img class="avatar" src="/assets/avatar.png" alt="Ghassen El Kamel" />
 
     <div class="heroText">
-      <div class="kicker">about</div>
+      <div class="kicker">{ui.kicker}</div>
       <h1>{headline}</h1>
       <div class="sub">{subtitle}</div>
 
@@ -70,25 +111,25 @@
             <p>{p}</p>
           {/each}
         {:else}
-          <p>I build reliable systems for connected products: secure connectivity, clean data flow, and backend services that hold up in production.</p>
+          <p>{ui.defaultIntro}</p>
         {/if}
       </div>
 
       <div class="links">
         <div class="linkRow">
-          <span class="label">email</span>
+          <span class="label">{ui.rowEmail}</span>
           <a class="link" href={"mailto:" + email}>{email}</a>
-          <button class="mini" type="button" onclick={() => copy(email, "Email")}>copy</button>
+          <button class="mini" type="button" onclick={() => copy(email, ui.emailLabel)}>{ui.copy}</button>
         </div>
 
         <div class="linkRow">
-          <span class="label">site</span>
+          <span class="label">{ui.rowSite}</span>
           <a class="link" href={site} target="_blank" rel="noreferrer">{site}</a>
-          <button class="mini" type="button" onclick={() => copy(site, "Link")}>copy</button>
+          <button class="mini" type="button" onclick={() => copy(site, ui.linkLabel)}>{ui.copy}</button>
         </div>
 
         <div class="linkRow">
-          <span class="label">GitHub</span>
+          <span class="label">{ui.rowGithub}</span>
           <a class="link" href={github} target="_blank" rel="noreferrer">{github.replace(/^https?:\/\//, "")}</a>
         </div>
 
@@ -101,14 +142,14 @@
 
   <section class="grid">
     <div class="card">
-      <div class="cardTitle">About</div>
+      <div class="cardTitle">{ui.about}</div>
       <div class="chips">
         {#each keywords.slice(0, 6) as s}
           <span class="chip">{s}</span>
         {/each}
       </div>
       <div class="hr"></div>
-      <div class="listTitle">I specialize in</div>
+      <div class="listTitle">{ui.specialize}</div>
       {#if specialties.length}
         <ul class="list">
           {#each specialties as it}
@@ -116,12 +157,12 @@
           {/each}
         </ul>
       {:else}
-        <div class="empty">No specialties configured.</div>
+        <div class="empty">{ui.noSpecialties}</div>
       {/if}
     </div>
 
     <div class="card">
-      <div class="cardTitle">Currently</div>
+      <div class="cardTitle">{ui.currently}</div>
       {#if now.length}
         <ul class="list">
           {#each now as it}
@@ -129,12 +170,12 @@
           {/each}
         </ul>
       {:else}
-        <div class="empty">No “Currently” items yet.</div>
+        <div class="empty">{ui.noCurrently}</div>
       {/if}
     </div>
 
     <div class="card">
-      <div class="cardTitle">Goals</div>
+      <div class="cardTitle">{ui.goals}</div>
       {#if goals.length}
         <ul class="list">
           {#each goals as it}
@@ -142,7 +183,7 @@
           {/each}
         </ul>
       {:else}
-        <div class="empty">No “Goals” items yet.</div>
+        <div class="empty">{ui.noGoals}</div>
       {/if}
     </div>
   </section>
@@ -298,5 +339,56 @@
     .grid { grid-template-columns: 1fr; }
     .hero { grid-template-columns: 72px 1fr; }
     .avatar { width: 72px; height: 72px; }
+  }
+
+  @media (max-width: 760px) {
+    .about {
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .avatar {
+      width: 68px;
+      height: 68px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 20px;
+    }
+
+    .sub {
+      font-size: 12px;
+    }
+
+    .linkRow {
+      grid-template-columns: 56px minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .mini {
+      grid-column: 2;
+      justify-self: start;
+      margin-top: 4px;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .card,
+    .hero,
+    .avatar {
+      border-radius: 12px;
+    }
+
+    .chip {
+      white-space: normal;
+      line-height: 1.3;
+    }
   }
 </style>

@@ -143,15 +143,33 @@ func DefaultExperience() ExperienceDocument {
 		Description:   "Select an experience to explore scope, impact, and tools used.",
 		Items: []ExperienceItem{
 			{
-				ID:        "bookbeo-2023",
-				Role:      "Full Stack Mobile Developer",
-				Org:       "bookBeo",
-				Dates:     "Mar 2023 – Present",
-				Location:  "Rennes, France · On-site",
-				Summary:   []string{"Led React Native features with a backend-aware approach to keep product behavior stable end-to-end.", "Focused on runtime performance, release quality, and reliable delivery across fast iteration cycles."},
-				Bullets:   []string{"React Native", "Product delivery", "Performance", "Feature ownership"},
-				Image:     "/assets/p7.jpg",
+				ID:       "spade-integrity-2024",
+				Role:     "IoT Engineer",
+				Org:      "Spade Integrity",
+				Dates:    "May 2024 - Present · 2 yrs 1 mo",
+				Location: "On-site",
+				Summary: []string{
+					"Contribute to client platform development with focus on reliability, security, and operational continuity.",
+					"Work on secure data recovery flows, NAS integration, and synchronization systems for alarms and critical data.",
+					"Support end-to-end IoT/backend delivery by improving data pipelines, monitoring quality, and secure service integrations.",
+				},
+				Bullets:   []string{"Go", "IoT platform", "Secure data recovery", "NAS integration", "Alarm synchronization", "Monitoring", "Infrastructure"},
+				Image:     "assets/spade-integrity.svg",
 				SortOrder: 10,
+			},
+			{
+				ID:       "bookbeo-2023",
+				Role:     "Full Stack Mobile Developer",
+				Org:      "bookBeo",
+				Dates:    "Mar 2023 - Sep 2023 · 7 mos",
+				Location: "Rennes, Brittany, France · On-site",
+				Summary: []string{
+					"Developed mobile product features and backend-connected workflows during internship delivery cycles.",
+					"Collaborated on release quality and implementation speed with structured team practices and version control discipline.",
+				},
+				Bullets:   []string{"GitLab", "Git", "React Native", "API integration", "Product delivery", "Performance", "Team collaboration"},
+				Image:     "/assets/p7.jpg",
+				SortOrder: 20,
 			},
 			{
 				ID:        "st-2022",
@@ -162,7 +180,62 @@ func DefaultExperience() ExperienceDocument {
 				Summary:   []string{"Worked on PSA Crypto API implementation under embedded constraints and strict security requirements.", "Delivered C code with structured Git workflows and Linux-based validation tooling."},
 				Bullets:   []string{"C", "PSA Crypto", "Embedded security", "Linux tooling"},
 				Image:     "/assets/p6.jpg",
-				SortOrder: 20,
+				SortOrder: 30,
+			},
+			{
+				ID:        "falcon-2022",
+				Role:      "Mobile Developer Experience",
+				Org:       "Falcon Inspection & Services",
+				Dates:     "Jun 2022 – Aug 2022",
+				Location:  "Tunis, Tunisia · On-site",
+				Summary:   []string{"Built a mobile workflow to record and validate multiple industrial tests in the field.", "Implemented per-test data models and rule validation to improve consistency of reports."},
+				Bullets:   []string{"Flutter", "Node.js", "Validation flows", "Docker"},
+				Image:     "/assets/p5.jpg",
+				SortOrder: 40,
+			},
+			{
+				ID:        "dall-2021",
+				Role:      "Weather Monitoring & Data Storage",
+				Org:       "DigiArtLivingLab",
+				Dates:     "Jul 2021 – Aug 2021",
+				Location:  "Tunis, Tunisia · On-site",
+				Summary:   []string{"Automated weather data collection and storage pipelines for continuous monitoring.", "Built UI modules and API integrations with JSON parsing and backend persistence."},
+				Bullets:   []string{"Java", "JavaFX", "API integration", "Automation"},
+				Image:     "/assets/p1.jpg",
+				SortOrder: 50,
+			},
+			{
+				ID:        "sagemcom-2020",
+				Role:      "Electronic Components Validation",
+				Org:       "SAGEMCOM",
+				Dates:     "Feb 2020 – May 2020",
+				Location:  "Tunis, Tunisia · On-site",
+				Summary:   []string{"Built LabView workflows for detection and qualification of electronic components.", "Trained a CNN model and deployed a lightweight inference variant on Raspberry Pi hardware."},
+				Bullets:   []string{"LabView", "CNN", "TensorFlow Lite", "Raspberry Pi", "SolidWorks"},
+				Image:     "/assets/p2.jpg",
+				SortOrder: 60,
+			},
+			{
+				ID:        "dall-2019",
+				Role:      "IoT Station + Mobile Apps",
+				Org:       "DigiArtLivingLab",
+				Dates:     "Jan 2019 – Feb 2019",
+				Location:  "Tunis, Tunisia · On-site",
+				Summary:   []string{"Developed Arduino-based sensing builds with Bluetooth communication.", "Created Android companion apps and live data sync under tight timeline constraints."},
+				Bullets:   []string{"Arduino", "Bluetooth", "MIT App Inventor", "Firebase"},
+				Image:     "/assets/p3.jpg",
+				SortOrder: 70,
+			},
+			{
+				ID:        "dall-2018",
+				Role:      "Educational Game Development",
+				Org:       "DigiArtLivingLab",
+				Dates:     "Jan 2018 – Feb 2018",
+				Location:  "Nabeul, Tunisia · On-site",
+				Summary:   []string{"Built a Unity educational game focused on directional learning for children.", "Coordinated assets, level pacing, and gameplay polish with a small collaborative team."},
+				Bullets:   []string{"Unity", "Gameplay design", "Team collaboration", "C++ basics"},
+				Image:     "/assets/p4.jpg",
+				SortOrder: 80,
 			},
 		},
 	}
@@ -264,8 +337,11 @@ func (d ExperienceDocument) Validate() error {
 		if len(it.Summary) == 0 {
 			return fmt.Errorf("experience summary required: %s", it.ID)
 		}
-		if it.Image != "" && !strings.HasPrefix(it.Image, "/") {
-			return fmt.Errorf("experience image must be site-relative path: %s", it.ID)
+		if it.Image != "" {
+			img := strings.TrimSpace(it.Image)
+			if !(strings.HasPrefix(img, "assets/") || strings.HasPrefix(img, "/assets/") || looksLikeURL(img)) {
+				return fmt.Errorf("experience image must be repo asset path or absolute url: %s", it.ID)
+			}
 		}
 		if it.ProofURL != "" && !looksLikeURL(it.ProofURL) {
 			return fmt.Errorf("experience proofUrl invalid: %s", it.ID)

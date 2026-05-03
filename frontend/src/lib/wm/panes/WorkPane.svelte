@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { page } from "$app/stores";
 
   type Repo = {
     id: number;
@@ -16,6 +16,19 @@
   let loading = $state(true);
   let err = $state<string | null>(null);
   let repos = $state<Repo[]>([]);
+  const activeLang = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr") ? "fr" : "en");
+
+  const ui = $derived.by(() => activeLang === "fr"
+    ? {
+        title: "Projets",
+        loading: "chargement...",
+        unknownError: "Erreur inconnue."
+      }
+    : {
+        title: "Work",
+        loading: "loading...",
+        unknownError: "Unknown error."
+      });
 
   function dateKey(r: Repo) {
     const s = r.pushed_at ?? r.updated_at ?? "";
@@ -23,26 +36,42 @@
     return Number.isFinite(t) ? t : 0;
   }
 
-  onMount(async () => {
-    try {
-      const r = await fetch("/api/github-repos?user=ghassenelkamel&limit=100");
-      const j = await r.json();
-      if (j?.error) err = j.error;
-      const list = Array.isArray(j?.repos) ? (j.repos as Repo[]) : [];
-      repos = [...list].sort((a, b) => dateKey(b) - dateKey(a));
-    } catch (e) {
-      err = e instanceof Error ? e.message : "Unknown error.";
-    } finally {
-      loading = false;
-    }
+  $effect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        loading = true;
+        err = null;
+        const params = new URLSearchParams({ user: "ghassenelkamel", limit: "100" });
+        if (activeLang === "fr") params.set("lang", "fr");
+
+        const r = await fetch(`/api/github-repos?${params.toString()}`);
+        const j = await r.json();
+        if (cancelled) return;
+        if (j?.error) err = j.error;
+        const list = Array.isArray(j?.repos) ? (j.repos as Repo[]) : [];
+        repos = [...list].sort((a, b) => dateKey(b) - dateKey(a));
+      } catch (e) {
+        if (cancelled) return;
+        err = e instanceof Error ? e.message : ui.unknownError;
+      } finally {
+        if (cancelled) return;
+        loading = false;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   });
 </script>
 
 <div class="pane">
-  <h2>Work</h2>
+  <h2>{ui.title}</h2>
 
   {#if loading}
-    <div class="muted">loading…</div>
+    <div class="muted">{ui.loading}</div>
   {:else if err}
     <div class="err">{err}</div>
   {/if}

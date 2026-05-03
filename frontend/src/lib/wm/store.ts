@@ -170,7 +170,7 @@ export function wmSetSplitRatio(splitId: string, ratio: number) {
   wm.update((s) => ({ ...s, root: updateSplitRatio(s.root, splitId, r) }));
 }
 
-export function wmSplitOpen(kind: AppKind, mode: SplitMode = "auto", baseWinId?: string) {
+export function wmSplitOpen(kind: AppKind, mode: SplitMode = "auto", baseWinId?: string, focus: "new" | "base" = "new") {
   wm.update((s) => {
     const base = baseWinId ?? s.focusWinId;
     if (!base || !s.windows[base]) return s;
@@ -195,7 +195,7 @@ export function wmSplitOpen(kind: AppKind, mode: SplitMode = "auto", baseWinId?:
       windows: { ...s.windows, [nw.id]: nw },
       order: [...s.order, nw.id],
       root: nextRoot,
-      focusWinId: nw.id
+      focusWinId: focus === "base" ? base : nw.id
     };
   });
 }

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { page } from "$app/stores";
+
   type ContactContent = {
     eyebrow?: string;
     title?: string;
@@ -9,7 +11,7 @@
     portfolio?: string;
   };
 
-  const fallbackContent: ContactContent = {
+  const fallbackContentEn: ContactContent = {
     eyebrow: "Contact",
     title: "Professional Reach",
     description: "Select a contact channel to discuss scope, impact, and collaboration.",
@@ -19,7 +21,53 @@
     portfolio: "https://ghassenelkamel.fr"
   };
 
-  let content = $state<ContactContent>(fallbackContent);
+  const fallbackContentFr: ContactContent = {
+    eyebrow: "Contact",
+    title: "Canaux professionnels",
+    description: "Choisissez un canal pour discuter du périmètre, de l'impact et d'une collaboration.",
+    email: "Ghassenelkamel@live.fr",
+    linkedin: "https://linkedin.com/in/ghassenelkamel",
+    github: "https://github.com/ghassenelkamel",
+    portfolio: "https://ghassenelkamel.fr"
+  };
+
+  let content = $state<ContactContent>(fallbackContentEn);
+  const langQuery = $derived(($page.url.searchParams.get("lang") || "").toLowerCase().startsWith("fr") ? "?lang=fr" : "");
+  const isFr = $derived(langQuery === "?lang=fr");
+
+  const ui = $derived.by(() => isFr
+    ? {
+        title: "Contact",
+        desc: "Choisissez un canal pour discuter du périmètre, de l'impact et d'une collaboration.",
+        from: "De",
+        subject: "Objet",
+        message: "Message",
+        fromPlaceholder: "votre@email.com",
+        subjectPlaceholder: "objet",
+        messagePlaceholder: "ecrivez votre message...",
+        sending: "envoi...",
+        send: "envoyer",
+        sent: "envoye",
+        failed: "echec",
+        unknown: "erreur inconnue"
+      }
+    : {
+        title: "Contact",
+        desc: "Select a contact channel to discuss scope, impact, and collaboration.",
+        from: "From",
+        subject: "Subject",
+        message: "Message",
+        fromPlaceholder: "your@email.com",
+        subjectPlaceholder: "subject",
+        messagePlaceholder: "write your message...",
+        sending: "sending...",
+        send: "send",
+        sent: "sent",
+        failed: "failed",
+        unknown: "unknown error"
+      });
+
+  const activeFallbackContent = $derived(isFr ? fallbackContentFr : fallbackContentEn);
 
   let from = $state("");
   let subject = $state("");
@@ -30,15 +78,12 @@
   $effect(() => {
     void (async () => {
       try {
-        const res = await fetch("/api/content/contact");
+        const res = await fetch(`/api/content/contact${langQuery}`);
         const j = await res.json();
         const d = (j?.data ?? {}) as ContactContent;
-        content = {
-          ...fallbackContent,
-          ...d
-        };
+        content = { ...activeFallbackContent, ...d };
       } catch {
-        // Keep fallback content.
+        content = activeFallbackContent;
       }
     })();
   });
@@ -53,10 +98,10 @@
         body: JSON.stringify({ name: "", email: from, subject, message })
       });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) status = j?.error ?? `failed (${r.status})`;
-      else status = "sent";
+      if (!r.ok) status = j?.error ?? `${ui.failed} (${r.status})`;
+      else status = ui.sent;
     } catch (e) {
-      status = e instanceof Error ? e.message : "unknown error";
+      status = e instanceof Error ? e.message : ui.unknown;
     } finally {
       sending = false;
       setTimeout(() => (status = null), 2200);
@@ -65,8 +110,8 @@
 </script>
 
 <div class="pane">
-  <h2>{content.title || "Contact"}</h2>
-  <p class="desc">{content.description || "Select a contact channel to discuss scope, impact, and collaboration."}</p>
+  <h2>{content.title || ui.title}</h2>
+  <p class="desc">{content.description || ui.desc}</p>
 
   <div class="links">
     <a href={"mailto:" + (content.email || "Ghassenelkamel@live.fr")}>{content.email || "Ghassenelkamel@live.fr"}</a>
@@ -76,22 +121,22 @@
 
   <div class="form">
     <label>
-      <span>From</span>
-      <input bind:value={from} type="email" placeholder="your@email.com" />
+      <span>{ui.from}</span>
+      <input bind:value={from} type="email" placeholder={ui.fromPlaceholder} />
     </label>
 
     <label>
-      <span>Subject</span>
-      <input bind:value={subject} type="text" placeholder="subject" />
+      <span>{ui.subject}</span>
+      <input bind:value={subject} type="text" placeholder={ui.subjectPlaceholder} />
     </label>
 
     <label>
-      <span>Message</span>
-      <textarea bind:value={message} placeholder="write your message…"></textarea>
+      <span>{ui.message}</span>
+      <textarea bind:value={message} placeholder={ui.messagePlaceholder}></textarea>
     </label>
 
     <button type="button" class="btn" disabled={sending} onclick={submit}>
-      {sending ? "sending…" : "send"}
+      {sending ? ui.sending : ui.send}
     </button>
 
     {#if status}
