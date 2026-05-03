@@ -25,6 +25,8 @@ Portfolio web application with a Go backend and a SvelteKit frontend, designed w
 
 - Docker Engine
 - Docker Compose (v2)
+- Node.js 24+ (for local frontend tooling outside Docker)
+- Bun 1.3+ (recommended for frontend commands)
 
 ## Run Locally (Development)
 

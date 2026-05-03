@@ -20,7 +20,7 @@ bun x sv create --template minimal --types ts --add prettier eslint tailwindcss=
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Use Node.js 24+ if you run via npm/pnpm/yarn. Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
 ```sh
 npm run dev
