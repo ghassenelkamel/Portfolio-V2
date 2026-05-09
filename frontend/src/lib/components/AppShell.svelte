@@ -208,55 +208,57 @@
     </div>
 
     <nav class="barCenter">
-      {#each workspaces as ws (ws.key)}
-        <button
-          type="button"
-          class={"ws " + (ws.key === active ? "wsActive" : "")}
-          onclick={() => openWS(ws.key)}
-          aria-current={ws.key === active ? "page" : undefined}
-          title={workspaceHints[ws.key]}
-        >
-          <span class="wsIcon" aria-hidden="true">
-            {#if ws.key === "terminal"}
-              <svg viewBox="0 0 24 24" fill="none">
-                <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" stroke="currentColor" stroke-width="1.5" />
-                <path d="M7 9l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="M12.5 15h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-              </svg>
-            {:else if ws.key === "about"}
-              <svg viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.5" />
-                <path d="M6 18c1.2-2.4 3.2-3.6 6-3.6s4.8 1.2 6 3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-              </svg>
-            {:else if ws.key === "experience"}
-              <svg viewBox="0 0 24 24" fill="none">
-                <rect x="4" y="7" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.5" />
-                <path d="M9 7V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5V7" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            {:else if ws.key === "work"}
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M3.5 8.5A2.5 2.5 0 016 6h4l1.2 1.5H18A2.5 2.5 0 0120.5 10v7A2.5 2.5 0 0118 19.5H6A2.5 2.5 0 013.5 17V8.5z" stroke="currentColor" stroke-width="1.5" />
-              </svg>
-            {:else if ws.key === "skills"}
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M6 17V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                <path d="M12 17V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                <path d="M18 17v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                <circle cx="6" cy="8" r="1.5" fill="currentColor" />
-                <circle cx="12" cy="11" r="1.5" fill="currentColor" />
-                <circle cx="18" cy="12" r="1.5" fill="currentColor" />
-              </svg>
-            {:else}
-              <svg viewBox="0 0 24 24" fill="none">
-                <rect x="4" y="6" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5" />
-                <path d="M5.5 8l6.5 5L18.5 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            {/if}
-          </span>
-          <span class="wsNum" aria-hidden="true">{ws.n}</span>
-          <span class="wsLabel">{ws.label}</span>
-        </button>
-      {/each}
+      <div class="barCenterTrack">
+        {#each workspaces as ws (ws.key)}
+          <button
+            type="button"
+            class={"ws " + (ws.key === active ? "wsActive" : "")}
+            onclick={() => openWS(ws.key)}
+            aria-current={ws.key === active ? "page" : undefined}
+            title={workspaceHints[ws.key]}
+          >
+            <span class="wsIcon" aria-hidden="true">
+              {#if ws.key === "terminal"}
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M7 9l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M12.5 15h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+              {:else if ws.key === "about"}
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M6 18c1.2-2.4 3.2-3.6 6-3.6s4.8 1.2 6 3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+              {:else if ws.key === "experience"}
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="4" y="7" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M9 7V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5V7" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+              {:else if ws.key === "work"}
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M3.5 8.5A2.5 2.5 0 016 6h4l1.2 1.5H18A2.5 2.5 0 0120.5 10v7A2.5 2.5 0 0118 19.5H6A2.5 2.5 0 013.5 17V8.5z" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+              {:else if ws.key === "skills"}
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M6 17V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  <path d="M12 17V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  <path d="M18 17v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  <circle cx="6" cy="8" r="1.5" fill="currentColor" />
+                  <circle cx="12" cy="11" r="1.5" fill="currentColor" />
+                  <circle cx="18" cy="12" r="1.5" fill="currentColor" />
+                </svg>
+              {:else}
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="4" y="6" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M5.5 8l6.5 5L18.5 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              {/if}
+            </span>
+            <span class="wsNum" aria-hidden="true">{ws.n}</span>
+            <span class="wsLabel">{ws.label}</span>
+          </button>
+        {/each}
+      </div>
     </nav>
 
     <div class="barRight">
@@ -265,8 +267,8 @@
         <button type="button" class={"langBtn " + (activeLang === "fr" ? "active" : "")} onclick={() => switchLang("fr")}>FR</button>
       </div>
       <span class="langState">{langStateLabel}</span>
-      <a class="link" href="https://linkedin.com/in/ghassenelkamel" target="_blank" rel="noreferrer">linkedin</a>
-      <a class="link" href="https://github.com/ghassenelkamel" target="_blank" rel="noreferrer">github</a>
+      <a class="link linkedin" href="https://linkedin.com/in/ghassenelkamel" target="_blank" rel="noreferrer">linkedin</a>
+      <a class="link github" href="https://github.com/ghassenelkamel" target="_blank" rel="noreferrer">github</a>
     </div>
   </header>
 

@@ -29,8 +29,8 @@ export const EXPERIENCE: ExperienceItem[] = [
   },
   {
     key: "stm",
-    label: "Security Project Team Member",
-    title: "Security Project Team Member",
+    label: "Security Project Team Member (Study Project)",
+    title: "Security Project Team Member (Study Project)",
     org: "STMicroelectronics",
     period: "Sep 2022 – Mar 2023",
     location: "Le Mans, Pays de la Loire, France · On-site",

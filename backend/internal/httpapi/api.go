@@ -27,7 +27,15 @@ func NewAPI(cfg config.Config) http.Handler {
 		gh:         github.NewClient(cfg.GitHubToken),
 		profileSvc: profile.NewService(),
 		contentSvc: content.NewService(cfg),
-		contactSvc: contact.NewService(cfg.ContactForwardURL),
+		contactSvc: contact.NewService(cfg.ContactForwardURL, contact.SMTPConfig{
+			Host:       cfg.SMTPHost,
+			Port:       cfg.SMTPPort,
+			User:       cfg.SMTPUser,
+			Pass:       cfg.SMTPPass,
+			From:       cfg.SMTPFrom,
+			To:         cfg.SMTPTo,
+			RequireTLS: cfg.SMTPRequireTLS,
+		}),
 	}
 	return http.HandlerFunc(a.serveHTTP)
 }

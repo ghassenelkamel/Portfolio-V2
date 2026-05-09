@@ -88,6 +88,12 @@ docker compose -f docker-compose.dev.yml down -v
 
 Configure values in `docker-compose.dev.yml` (or via your environment):
 
+```bash
+cp .env.example .env
+```
+
+Then set your real SMTP credentials in `.env`.
+
 ### API service
 
 - `ADDR`: API listen address (example: `:8080`)
@@ -98,7 +104,14 @@ Configure values in `docker-compose.dev.yml` (or via your environment):
 - `CONTENT_REPO_REF`: Branch/tag/commit to read (example: `main`)
 - `CONTENT_REPO_DIR`: Folder in content repo containing JSON files (example: `content`)
 - `CONTENT_CACHE_TTL`: API cache TTL in seconds for content fetches
-- `CONTACT_FORWARD_URL`: Optional endpoint to forward contact submissions
+- `SMTP_HOST`: SMTP server hostname for direct email delivery
+- `SMTP_PORT`: SMTP server port (default: `587`)
+- `SMTP_USER`: SMTP username/login
+- `SMTP_PASS`: SMTP password/app password
+- `SMTP_FROM`: Sender address used by backend (example: `no-reply@yourdomain.com`)
+- `SMTP_TO`: Recipient address where contact form messages are delivered
+- `SMTP_REQUIRE_TLS`: Require STARTTLS before auth/send (`true` by default)
+- `CONTACT_FORWARD_URL`: Optional fallback endpoint (used only when SMTP is not configured)
 
 ### Web service
 
@@ -112,6 +125,8 @@ Configure values in `docker-compose.dev.yml` (or via your environment):
 cd backend
 go run ./cmd/portfolio
 ```
+
+The backend auto-loads `.env` when present (from `backend/.env` or repo-root `../.env`) unless variables are already set in the process environment.
 
 ### Frontend
 
@@ -137,6 +152,15 @@ The About, Skills, Experience, and Contact pages are loaded from:
 - `/api/content/contact`
 
 Back-end content endpoints pull JSON from your public content repository (`CONTENT_REPO_*` variables) and keep a last-known-good cache fallback.
+
+## Contact Form Delivery
+
+`POST /api/contact` supports two delivery modes:
+
+1. SMTP (preferred): set `SMTP_HOST`, `SMTP_FROM`, and `SMTP_TO` (plus auth vars if required)
+2. Forwarding fallback: set `CONTACT_FORWARD_URL` if SMTP is not configured
+
+If neither SMTP nor forwarding is configured, backend accepts the submission but does not send it (dev-friendly no-op).
 
 ## License
 

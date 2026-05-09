@@ -42,6 +42,7 @@ type ExperienceItem struct {
 	ID        string   `json:"id"`
 	Role      string   `json:"role"`
 	Org       string   `json:"org"`
+	OrgURL    string   `json:"orgUrl,omitempty"`
 	Dates     string   `json:"dates"`
 	Location  string   `json:"location"`
 	Summary   []string `json:"summary"`
@@ -146,7 +147,8 @@ func DefaultExperience() ExperienceDocument {
 				ID:       "spade-integrity-2024",
 				Role:     "IoT Engineer",
 				Org:      "Spade Integrity",
-				Dates:    "May 2024 - Present · 2 yrs 1 mo",
+				OrgURL:   "https://spade-integrity.com/",
+				Dates:    "May 2024 - Present",
 				Location: "On-site",
 				Summary: []string{
 					"Contribute to client platform development with focus on reliability, security, and operational continuity.",
@@ -159,8 +161,9 @@ func DefaultExperience() ExperienceDocument {
 			},
 			{
 				ID:       "bookbeo-2023",
-				Role:     "Full Stack Mobile Developer",
+				Role:     "Full Stack Mobile Developer (Internship)",
 				Org:      "bookBeo",
+				OrgURL:   "https://www.bookbeo.com/fr",
 				Dates:    "Mar 2023 - Sep 2023 · 7 mos",
 				Location: "Rennes, Brittany, France · On-site",
 				Summary: []string{
@@ -173,8 +176,9 @@ func DefaultExperience() ExperienceDocument {
 			},
 			{
 				ID:        "st-2022",
-				Role:      "Security Project Team Member",
+				Role:      "Security Project Team Member (Study Project)",
 				Org:       "STMicroelectronics",
+				OrgURL:    "https://www.st.com",
 				Dates:     "Sep 2022 – Mar 2023",
 				Location:  "Le Mans, France · On-site",
 				Summary:   []string{"Worked on PSA Crypto API implementation under embedded constraints and strict security requirements.", "Delivered C code with structured Git workflows and Linux-based validation tooling."},
@@ -184,8 +188,9 @@ func DefaultExperience() ExperienceDocument {
 			},
 			{
 				ID:        "falcon-2022",
-				Role:      "Mobile Developer Experience",
+				Role:      "Mobile Developer Intern",
 				Org:       "Falcon Inspection & Services",
+				OrgURL:    "https://www.falconinspec.com/",
 				Dates:     "Jun 2022 – Aug 2022",
 				Location:  "Tunis, Tunisia · On-site",
 				Summary:   []string{"Built a mobile workflow to record and validate multiple industrial tests in the field.", "Implemented per-test data models and rule validation to improve consistency of reports."},
@@ -195,8 +200,9 @@ func DefaultExperience() ExperienceDocument {
 			},
 			{
 				ID:        "dall-2021",
-				Role:      "Weather Monitoring & Data Storage",
+				Role:      "Weather Monitoring & Data Storage (Internship)",
 				Org:       "DigiArtLivingLab",
+				OrgURL:    "https://www.dall4all.org/",
 				Dates:     "Jul 2021 – Aug 2021",
 				Location:  "Tunis, Tunisia · On-site",
 				Summary:   []string{"Automated weather data collection and storage pipelines for continuous monitoring.", "Built UI modules and API integrations with JSON parsing and backend persistence."},
@@ -206,8 +212,9 @@ func DefaultExperience() ExperienceDocument {
 			},
 			{
 				ID:        "sagemcom-2020",
-				Role:      "Electronic Components Validation",
+				Role:      "Electronic Components Validation (Internship)",
 				Org:       "SAGEMCOM",
+				OrgURL:    "https://sagemcom.com",
 				Dates:     "Feb 2020 – May 2020",
 				Location:  "Tunis, Tunisia · On-site",
 				Summary:   []string{"Built LabView workflows for detection and qualification of electronic components.", "Trained a CNN model and deployed a lightweight inference variant on Raspberry Pi hardware."},
@@ -217,8 +224,9 @@ func DefaultExperience() ExperienceDocument {
 			},
 			{
 				ID:        "dall-2019",
-				Role:      "IoT Station + Mobile Apps",
+				Role:      "IoT Station + Mobile Apps (Internship)",
 				Org:       "DigiArtLivingLab",
+				OrgURL:    "https://www.dall4all.org/",
 				Dates:     "Jan 2019 – Feb 2019",
 				Location:  "Tunis, Tunisia · On-site",
 				Summary:   []string{"Developed Arduino-based sensing builds with Bluetooth communication.", "Created Android companion apps and live data sync under tight timeline constraints."},
@@ -228,8 +236,9 @@ func DefaultExperience() ExperienceDocument {
 			},
 			{
 				ID:        "dall-2018",
-				Role:      "Educational Game Development",
+				Role:      "Educational Game Development (Internship)",
 				Org:       "DigiArtLivingLab",
+				OrgURL:    "https://www.dall4all.org/",
 				Dates:     "Jan 2018 – Feb 2018",
 				Location:  "Nabeul, Tunisia · On-site",
 				Summary:   []string{"Built a Unity educational game focused on directional learning for children.", "Coordinated assets, level pacing, and gameplay polish with a small collaborative team."},
@@ -345,6 +354,9 @@ func (d ExperienceDocument) Validate() error {
 		}
 		if it.ProofURL != "" && !looksLikeURL(it.ProofURL) {
 			return fmt.Errorf("experience proofUrl invalid: %s", it.ID)
+		}
+		if it.OrgURL != "" && !looksLikeURL(it.OrgURL) {
+			return fmt.Errorf("experience orgUrl invalid: %s", it.ID)
 		}
 	}
 	return nil

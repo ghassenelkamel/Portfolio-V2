@@ -27,8 +27,8 @@
     height: 100%;
     min-height: 0;
 
-    display: block;
-    gap: 0;
+    display: grid;
+    place-items: center;
 
     background: var(--surface, rgba(15, 20, 25, 0.35));
     border: 1px solid var(--border, rgba(255, 255, 255, 0.10));
@@ -38,19 +38,26 @@
     -webkit-backdrop-filter: blur(var(--blur, 18px));
 
     overflow: auto;
-    padding: 8px;
+    padding: clamp(10px, 1.8vw, 20px);
     box-sizing: border-box;
   }
 
   .routeContent {
-    min-height: 100%;
+    width: min(1220px, 100%);
+    min-height: min-content;
+    margin: auto;
     overflow: visible;
   }
 
   @media (max-width: 700px) {
     .routePane {
-      gap: 0;
-      padding: 6px;
+      padding: 8px;
+      place-items: start center;
+    }
+
+    .routeContent {
+      width: 100%;
+      margin: 0;
     }
   }
 </style>

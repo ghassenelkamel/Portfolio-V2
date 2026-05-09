@@ -209,7 +209,7 @@
   .avatar {
     width: 84px;
     height: 84px;
-    border-radius: 14px;
+    border-radius: 999px;
     object-fit: cover;
     border: 1px solid rgba(204, 102, 102, 0.30);
     box-shadow: 0 10px 30px rgba(0,0,0,0.35);
@@ -356,7 +356,7 @@
     .avatar {
       width: 68px;
       height: 68px;
-      border-radius: 12px;
+      border-radius: 999px;
     }
 
     h1 {
@@ -381,8 +381,7 @@
 
   @media (max-width: 520px) {
     .card,
-    .hero,
-    .avatar {
+    .hero {
       border-radius: 12px;
     }
 

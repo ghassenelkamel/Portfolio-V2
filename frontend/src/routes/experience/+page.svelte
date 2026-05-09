@@ -6,6 +6,7 @@
     key: string;
     title: string;
     org: string;
+    orgUrl?: string;
     dates: string;
     location: string;
     summary: string[];
@@ -18,6 +19,7 @@
     id: string;
     role: string;
     org: string;
+    orgUrl?: string;
     dates: string;
     location: string;
     summary: string[];
@@ -73,7 +75,8 @@
       key: "spade-integrity-2024",
       title: "IoT Engineer",
       org: "Spade Integrity",
-      dates: "May 2024 - Present · 2 yrs 1 mo",
+      orgUrl: "https://spade-integrity.com/",
+      dates: "May 2024 - Present",
       location: "On-site",
       summary: [
         "Contribute to client platform development with focus on reliability, security, and operational continuity.",
@@ -85,8 +88,9 @@
     },
     {
       key: "bookbeo-2023",
-      title: "Full Stack Mobile Developer",
+      title: "Full Stack Mobile Developer (Internship)",
       org: "bookBeo",
+      orgUrl: "https://www.bookbeo.com/fr",
       dates: "Mar 2023 - Sep 2023 · 7 mos",
       location: "Rennes, Brittany, France · On-site",
       summary: [
@@ -98,8 +102,9 @@
     },
     {
       key: "st-2022",
-      title: "Security Project Team Member",
+      title: "Security Project Team Member (Study Project)",
       org: "STMicroelectronics",
+      orgUrl: "https://www.st.com",
       dates: "Sep 2022 – Mar 2023",
       location: "Le Mans, France · On-site",
       summary: [
@@ -111,8 +116,9 @@
     },
     {
       key: "falcon-2022",
-      title: "Mobile Developer Experience",
+      title: "Mobile Developer Intern",
       org: "Falcon Inspection & Services",
+      orgUrl: "https://www.falconinspec.com/",
       dates: "Jun 2022 – Aug 2022",
       location: "Tunis, Tunisia · On-site",
       summary: [
@@ -124,8 +130,9 @@
     },
     {
       key: "dall-2021",
-      title: "Weather Monitoring & Data Storage",
+      title: "Weather Monitoring & Data Storage (Internship)",
       org: "DigiArtLivingLab",
+      orgUrl: "https://www.dall4all.org/",
       dates: "Jul 2021 – Aug 2021",
       location: "Tunis, Tunisia · On-site",
       summary: [
@@ -137,8 +144,9 @@
     },
     {
       key: "sagemcom-2020",
-      title: "Electronic Components Validation",
+      title: "Electronic Components Validation (Internship)",
       org: "SAGEMCOM",
+      orgUrl: "https://sagemcom.com",
       dates: "Feb 2020 – May 2020",
       location: "Tunis, Tunisia · On-site",
       summary: [
@@ -151,8 +159,9 @@
     },
     {
       key: "dall-2019",
-      title: "IoT Station + Mobile Apps",
+      title: "IoT Station + Mobile Apps (Internship)",
       org: "DigiArtLivingLab",
+      orgUrl: "https://www.dall4all.org/",
       dates: "Jan 2019 – Feb 2019",
       location: "Tunis, Tunisia · On-site",
       summary: [
@@ -164,8 +173,9 @@
     },
     {
       key: "dall-2018",
-      title: "Educational Game Development",
+      title: "Educational Game Development (Internship)",
       org: "DigiArtLivingLab",
+      orgUrl: "https://www.dall4all.org/",
       dates: "Jan 2018 – Feb 2018",
       location: "Nabeul, Tunisia · On-site",
       summary: [
@@ -186,6 +196,7 @@
         key: item.id,
         title: item.role,
         org: item.org,
+        orgUrl: item.orgUrl,
         dates: item.dates,
         location: item.location,
         summary: Array.isArray(item.summary) ? item.summary : [],
@@ -336,7 +347,13 @@
     <div class="topStats">
       <div class="stat">
         <div class="k">{ui.company}</div>
-        <div class="v">{selected.org}</div>
+        <div class="v">
+          {#if selected.orgUrl}
+            <a class="orgLink" href={selected.orgUrl} target="_blank" rel="noreferrer">{selected.org}</a>
+          {:else}
+            {selected.org}
+          {/if}
+        </div>
       </div>
       <div class="stat">
         <div class="k">{ui.period}</div>
@@ -355,7 +372,14 @@
         <div class="cardHead">
           <div class="title">
             <div class="big">{selected.title}</div>
-            <div class="small"><span class="org">@{selected.org}</span> · {selected.location}</div>
+            <div class="small">
+              {#if selected.orgUrl}
+                <a class="org orgLink" href={selected.orgUrl} target="_blank" rel="noreferrer">@{selected.org}</a>
+              {:else}
+                <span class="org">@{selected.org}</span>
+              {/if}
+              · {selected.location}
+            </div>
           </div>
 
           {#if selected.link}
@@ -643,6 +667,17 @@
 
   .org {
     color: rgba(228, 90, 90, 0.9);
+  }
+
+  .orgLink {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(228, 90, 90, 0.42);
+    padding-bottom: 1px;
+  }
+
+  .orgLink:hover {
+    border-bottom-color: rgba(228, 90, 90, 0.82);
   }
 
   .link {

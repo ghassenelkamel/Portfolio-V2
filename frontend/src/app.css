@@ -17,29 +17,29 @@
   --font-mono: ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
 
   /* Base palette */
-  --bg: #07080b;
-  --surface: rgba(15, 20, 25, 0.38);
-  --surface-2: rgba(15, 20, 25, 0.26);
+  --bg: #06080c;
+  --surface: rgba(12, 16, 22, 0.56);
+  --surface-2: rgba(10, 14, 20, 0.44);
   --text: rgba(245, 245, 245, 0.92);
   --muted: rgba(245, 245, 245, 0.68);
 
   /* Accent (professional red) */
-  --accent: #e45a5a;
-  --accent-2: rgba(228, 90, 90, 0.18);
-  --accent-3: rgba(228, 90, 90, 0.08);
+  --accent: #db4c4c;
+  --accent-2: rgba(219, 76, 76, 0.24);
+  --accent-3: rgba(219, 76, 76, 0.12);
 
   /* Terminal green for subtle highlights */
   --term: #00ffb4;
   --term-2: rgba(0, 255, 180, 0.16);
 
   /* Terminal glass tuning (more transparent, less blur) */
-  --term-surface: rgba(15, 20, 25, 0.16);
-  --term-surface-2: rgba(15, 20, 25, 0.09);
+  --term-surface: rgba(10, 14, 20, 0.74);
+  --term-surface-2: rgba(8, 11, 16, 0.80);
   --term-blur: 14px;
 
   /* Borders / glass */
-  --border: rgba(255, 255, 255, 0.10);
-  --border-2: rgba(255, 255, 255, 0.16);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-2: rgba(255, 255, 255, 0.13);
   --blur: 18px;
   --radius: 14px;
 

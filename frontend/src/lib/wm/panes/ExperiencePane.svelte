@@ -75,7 +75,7 @@
     {
       id: "st-2022",
       company: "STMicroelectronics",
-      role: "Security Project Team Member",
+      role: "Security Project Team Member (Study Project)",
       where: "Le Mans, France · On-site",
       dates: "Sep 2022 – Mar 2023",
       impact: [
@@ -195,7 +195,7 @@
     {
       id: "st-2022",
       company: "STMicroelectronics",
-      role: "Membre d'equipe projet securite",
+      role: "Membre d'equipe projet securite (Projet d'etude)",
       where: "Le Mans, France · Sur site",
       dates: "Sept 2022 - Mars 2023",
       impact: [
