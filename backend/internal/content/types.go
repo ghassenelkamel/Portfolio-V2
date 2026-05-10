@@ -149,7 +149,7 @@ func DefaultExperience() ExperienceDocument {
 				Org:      "Spade Integrity",
 				OrgURL:   "https://spade-integrity.com/",
 				Dates:    "May 2024 - Present",
-				Location: "On-site",
+				Location: "Paris, France · On-site",
 				Summary: []string{
 					"Contribute to client platform development with focus on reliability, security, and operational continuity.",
 					"Work on secure data recovery flows, NAS integration, and synchronization systems for alarms and critical data.",

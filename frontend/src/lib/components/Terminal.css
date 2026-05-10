@@ -184,11 +184,13 @@
 
   cursor: pointer;
   transform: perspective(900px) rotateX(calc(var(--hy, 0) * -6deg)) rotateY(calc(var(--hx, 0) * 8deg));
-  transition: transform 120ms ease, filter 120ms ease;
+  opacity: 0.98;
+  transition: transform 120ms ease, opacity 120ms ease;
   filter: drop-shadow(0 20px 44px rgba(0, 0, 0, 0.42)) drop-shadow(0 0 20px rgba(142, 8, 0, 0.16));
 }
 
 .kaghaHit:hover {
+  opacity: 1;
   filter: drop-shadow(0 22px 54px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 28px rgba(142, 8, 0, 0.24));
 }
 
@@ -224,7 +226,7 @@
 .kaghaGameWrap {
   position: relative;
   display: inline-block;
-  transition: height 160ms ease;
+  transition: transform 160ms ease, opacity 160ms ease;
 }
 
 .kaghaHit.scarred .kaghaGameWrap {
@@ -329,32 +331,34 @@
 
 .kaghaAscii.layer.red {
   color: rgba(142, 8, 0, 0.88);
-  transform: translate(calc(var(--tx, 0px) + 2px), calc(var(--ty, 0px) - 1px));
-  clip-path: inset(0 0 62% 0);
-  animation: asciiSliceRed 1.05s steps(2, end) infinite;
+  transform-origin: top center;
+  transform: translate(calc(var(--tx, 0px) + 2px), calc(var(--ty, 0px) - 1px)) scaleY(var(--red-scale-y, 1));
+  opacity: 0.52;
+  animation: asciiJitterRed 1.05s steps(2, end) infinite;
 }
 
 .kaghaAscii.layer.amber {
   color: rgba(140, 18, 0, 0.86);
-  transform: translate(calc(var(--tx, 0px) - 2px), calc(var(--ty, 0px) + 1px));
-  clip-path: inset(48% 0 0 0);
-  animation: asciiSliceAmber 0.92s steps(2, end) infinite;
+  transform-origin: bottom center;
+  transform: translate(calc(var(--tx, 0px) - 2px), calc(var(--ty, 0px) + 1px)) scaleY(var(--amber-scale-y, 1));
+  opacity: 0.52;
+  animation: asciiJitterAmber 0.92s steps(2, end) infinite;
 }
 
-@keyframes asciiSliceRed {
-  0% { clip-path: inset(0 0 70% 0); }
-  20% { clip-path: inset(0 0 58% 0); }
-  40% { clip-path: inset(0 0 82% 0); }
-  60% { clip-path: inset(0 0 64% 0); }
-  100% { clip-path: inset(0 0 74% 0); }
+@keyframes asciiJitterRed {
+  0% { opacity: 0.42; }
+  25% { opacity: 0.5; }
+  50% { opacity: 0.38; }
+  75% { opacity: 0.45; }
+  100% { opacity: 0.42; }
 }
 
-@keyframes asciiSliceAmber {
-  0% { clip-path: inset(52% 0 0 0); }
-  20% { clip-path: inset(46% 0 0 0); }
-  40% { clip-path: inset(60% 0 0 0); }
-  60% { clip-path: inset(50% 0 0 0); }
-  100% { clip-path: inset(56% 0 0 0); }
+@keyframes asciiJitterAmber {
+  0% { opacity: 0.42; }
+  25% { opacity: 0.5; }
+  50% { opacity: 0.38; }
+  75% { opacity: 0.45; }
+  100% { opacity: 0.42; }
 }
 
 /* Prompt */

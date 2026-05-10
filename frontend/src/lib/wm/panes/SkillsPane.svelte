@@ -157,7 +157,7 @@
         </div>
 
         <div class="meter">
-          <span class={`fill ${barClass(s.live)}`} style={`width:${s.live}%;`}></span>
+          <span class={`fill ${barClass(s.live)}`} style={`--fill-scale:${Math.max(0, Math.min(1, s.live / 100))};`}></span>
           <span class="ticks" aria-hidden="true"></span>
         </div>
 
@@ -269,8 +269,11 @@
   .fill {
     position: absolute;
     inset: 0 auto 0 0;
+    width: 100%;
     border-radius: 6px;
-    transition: width 260ms linear;
+    transform-origin: left center;
+    transform: scaleX(var(--fill-scale, 0));
+    transition: transform 260ms linear;
     box-shadow: 0 0 8px rgba(228, 90, 90, 0.1);
   }
 

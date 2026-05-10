@@ -77,7 +77,7 @@
       org: "Spade Integrity",
       orgUrl: "https://spade-integrity.com/",
       dates: "May 2024 - Present",
-      location: "On-site",
+      location: "Paris, France · On-site",
       summary: [
         "Contribute to client platform development with focus on reliability, security, and operational continuity.",
         "Work on secure data recovery flows, NAS integration, and synchronization systems for alarms and critical data.",
@@ -286,10 +286,19 @@
     resetThumbMotion();
   }
 
+  function imageAlt(job: Job) {
+    const role = job.title?.trim() || "";
+    const org = job.org?.trim() || "";
+    if (role && org) return `${role} at ${org}`;
+    if (role) return role;
+    if (org) return org;
+    return "Experience image";
+  }
+
   function openImageModal(job: Job) {
     if (!job.img) return;
     modalSrc = job.img;
-    modalAlt = job.title;
+    modalAlt = imageAlt(job);
     modalCaption = `${job.org} - ${job.title}`;
     modalOpen = true;
   }
@@ -416,7 +425,7 @@
                 onpointerleave={onThumbLeave}
                 style={`--rx:${thumbRx}deg; --ry:${thumbRy}deg; --tx:${thumbTx}px; --ty:${thumbTy}px; --lx:${thumbLx}%; --ly:${thumbLy}%;`}
               >
-                <img class="thumbImg" src={selected.img} alt={selected.title} loading="eager" decoding="async" />
+                <img class="thumbImg" src={selected.img} alt={imageAlt(selected)} loading="eager" decoding="async" />
                 <span class="zoomHint">{ui.clickToExpand}</span>
               </button>
               <figcaption>{selected.org}</figcaption>
@@ -806,7 +815,8 @@
     object-position: center;
     filter: saturate(1.14) contrast(1.14) brightness(1.06);
     transform: translate3d(var(--tx), var(--ty), 0) scale(1.05) rotateX(var(--rx)) rotateY(var(--ry));
-    transition: transform 0.16s linear, filter 0.22s ease;
+    opacity: 0.999;
+    transition: transform 0.16s linear, opacity 0.22s ease;
   }
 
   .thumbBtn:hover .thumbImg {
@@ -1036,7 +1046,7 @@
   @media (hover: none), (pointer: coarse) {
     .thumbImg {
       transform: none;
-      transition: filter 0.22s ease;
+      transition: opacity 0.22s ease;
     }
 
     .zoomHint {

@@ -51,13 +51,13 @@
     </div>
 
     <div class="right">
-      <button type="button" class="btn" title="open (auto dwindle split)" onclick={(e) => { e.stopPropagation(); openLauncher("auto"); }}>+</button>
-      <button type="button" class="btn" title="force vertical split (left/right)" onclick={(e) => { e.stopPropagation(); openLauncher("row"); }}>v</button>
-      <button type="button" class="btn" title="force horizontal split (top/bottom)" onclick={(e) => { e.stopPropagation(); openLauncher("col"); }}>h</button>
+      <button type="button" class="btn" title="open (auto dwindle split)" aria-label="Open launcher (auto split)" onclick={(e) => { e.stopPropagation(); openLauncher("auto"); }}>+</button>
+      <button type="button" class="btn" title="force vertical split (left/right)" aria-label="Split vertically" onclick={(e) => { e.stopPropagation(); openLauncher("row"); }}>v</button>
+      <button type="button" class="btn" title="force horizontal split (top/bottom)" aria-label="Split horizontally" onclick={(e) => { e.stopPropagation(); openLauncher("col"); }}>h</button>
 
-      <button type="button" class="btn" title="duplicate (auto)" onclick={(e) => { e.stopPropagation(); wmDuplicate(props.winId, "auto"); }}>dup</button>
-      <button type="button" class="btn" title="fullscreen route" onclick={(e) => { e.stopPropagation(); fullscreen(); }}>fs</button>
-      <button type="button" class="btn danger" title="close" onclick={(e) => { e.stopPropagation(); wmClose(props.winId); }}>x</button>
+      <button type="button" class="btn" title="duplicate (auto)" aria-label="Duplicate window" onclick={(e) => { e.stopPropagation(); wmDuplicate(props.winId, "auto"); }}>dup</button>
+      <button type="button" class="btn" title="fullscreen route" aria-label="Open fullscreen route" onclick={(e) => { e.stopPropagation(); fullscreen(); }}>fs</button>
+      <button type="button" class="btn danger" title="close" aria-label="Close window" onclick={(e) => { e.stopPropagation(); wmClose(props.winId); }}>x</button>
     </div>
   </div>
 

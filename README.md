@@ -2,6 +2,12 @@
 
 Portfolio web application with a Go backend and a SvelteKit frontend, designed with Docker Compose.
 
+## Demo
+
+Short walkthrough video of the portfolio experience.
+
+- [Watch the demo (1.5x)](docs/media/portfolio-demo.mp4)
+
 ## Stack
 
 - Backend: Go
@@ -97,6 +103,7 @@ Then set your real SMTP credentials in `.env`.
 ### API service
 
 - `ADDR`: API listen address (example: `:8080`)
+- `LOG_LEVEL`: Backend log level (`debug`, `info`, `warn`, `error`; default `info`)
 - `GITHUB_USER`: GitHub username used by API integrations
 - `GITHUB_TOKEN`: Optional GitHub token (helps with rate limits)
 - `CONTENT_REPO_OWNER`: Owner of the portfolio content repository
@@ -116,6 +123,11 @@ Then set your real SMTP credentials in `.env`.
 ### Web service
 
 - `VITE_API_PROXY_TARGET`: API target used by the frontend proxy (compose default usually points to `http://api:8080`)
+
+## Log Retention
+
+- Docker Compose services use rotating container logs (`max-size` + `max-file`) so old logs are automatically cleaned.
+- Follow logs live with `docker compose -f docker-compose.dev.yml logs -f`.
 
 ## Running Without Docker (Optional)
 

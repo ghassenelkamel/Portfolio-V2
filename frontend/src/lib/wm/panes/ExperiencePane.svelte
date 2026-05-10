@@ -51,7 +51,7 @@
       id: "spade-integrity",
       company: "Spade Integrity",
       role: "IoT Engineer",
-      where: "On-site",
+      where: "Paris, France · On-site",
       dates: "May 2024 - Present · 2 yrs 1 mo",
       impact: [
         "Contribute to client platform development with focus on reliability, security, and operational continuity.",
@@ -171,7 +171,7 @@
       id: "spade-integrity",
       company: "Spade Integrity",
       role: "Ingenieur IoT",
-      where: "Sur site",
+      where: "Paris, France · Sur site",
       dates: "Mai 2024 - Present · 2 ans 1 mois",
       impact: [
         "Contribue au developpement de la plateforme client avec un focus sur la fiabilite, la securite et la continuite de service.",

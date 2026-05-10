@@ -11,6 +11,7 @@ services:
       - go_mod:/go/pkg/mod
     environment:
       - ADDR=:8080
+      - LOG_LEVEL=info
       - GITHUB_USER=ghassenelkamel
       - CONTENT_REPO_OWNER=ghassenelkamel
       - CONTENT_REPO_NAME=portfolio-content
@@ -26,6 +27,11 @@ services:
       # - SMTP_FROM=no-reply@example.com
       # - SMTP_TO=you@example.com
       # - SMTP_REQUIRE_TLS=true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     ports:
       - "8080:8080"
 
@@ -40,6 +46,11 @@ services:
     environment:
       - VITE_API_PROXY_TARGET=http://api:8080
     command: sh -lc "bun install --frozen-lockfile && bun run dev"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "5173:5173"
     depends_on:

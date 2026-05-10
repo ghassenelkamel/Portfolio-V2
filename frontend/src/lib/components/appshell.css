@@ -101,7 +101,7 @@
   top:78px;
   z-index:55;
   width:44px;
-  transition:width .18s ease;
+  transition:transform .18s ease, opacity .18s ease;
 }
 .dock:hover, .dock:focus-within{ width:190px; }
 
@@ -160,7 +160,7 @@
   max-height:0;
   opacity:0;
   transform:translateX(-8px);
-  transition:max-height .18s ease, opacity .18s ease, transform .18s ease;
+  transition:opacity .18s ease, transform .18s ease;
   pointer-events:none;
 }
 .dock:hover .dockPanel,

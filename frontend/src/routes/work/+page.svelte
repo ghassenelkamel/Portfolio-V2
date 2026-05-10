@@ -230,6 +230,7 @@
         class="search"
         type="text"
         placeholder={ui.search}
+        aria-label={ui.search}
         bind:value={q}
         spellcheck="false"
       />

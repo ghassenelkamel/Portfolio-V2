@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -206,11 +207,32 @@ func (a *API) contact(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.contactSvc.Handle(r.Context(), req.Name, req.Email, req.Subject, req.Message); err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"ok": false, "error": err.Error()})
+		slog.Error("contact delivery failed", "from", req.Email, "subject", req.Subject, "err", err)
+		writeJSON(w, http.StatusBadGateway, map[string]any{"ok": false, "error": publicContactError(err)})
 		return
 	}
 
 	writeJSON(w, http.StatusAccepted, map[string]any{"ok": true})
+}
+
+func publicContactError(err error) string {
+	if err == nil {
+		return ""
+	}
+
+	msg := err.Error()
+	lower := strings.ToLower(msg)
+
+	switch {
+	case strings.Contains(lower, "application-specific password required"):
+		return "SMTP auth failed. Gmail requires an App Password with 2FA, or use another SMTP provider."
+	case strings.Contains(lower, "535 5.7.8 authentication failed"):
+		return "SMTP authentication failed. Check SMTP_HOST, SMTP_USER, and SMTP_PASS."
+	case strings.Contains(lower, "smtp config incomplete"):
+		return msg
+	default:
+		return msg
+	}
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

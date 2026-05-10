@@ -128,7 +128,14 @@
 
       const txt = await res.text().catch(() => "");
       if (!res.ok) {
-        return setStatus({ kind: "err", msg: `${ui.sendFailed} (${res.status}). ${txt.slice(0, 160)}` }, 3500);
+        let details = txt;
+        try {
+          const parsed = JSON.parse(txt) as { error?: string };
+          if (parsed?.error) details = parsed.error;
+        } catch {
+          // Keep raw response text.
+        }
+        return setStatus({ kind: "err", msg: `${ui.sendFailed} (${res.status}). ${details}` }, 5000);
       }
 
       setStatus({ kind: "ok", msg: ui.sentThanks }, 2500);

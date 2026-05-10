@@ -8,6 +8,7 @@ services:
     environment:
       - ADDR=:8080
       - WEB_DIR=/app/web
+      - LOG_LEVEL=info
       - GITHUB_USER=ghassenelkamel
       - CONTENT_REPO_OWNER=ghassenelkamel
       - CONTENT_REPO_NAME=portfolio-content
@@ -23,3 +24,8 @@ services:
       # - SMTP_FROM=no-reply@example.com
       # - SMTP_TO=you@example.com
       # - SMTP_REQUIRE_TLS=true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

@@ -169,6 +169,18 @@
   let bannerLastWrapToneAt = 0;
   let bannerWinSoundPlayed = false;
 
+  const redScaleY = $derived.by(() => {
+    if (bannerLineAlive.length === 0) return 0;
+    const alive = bannerLineAlive.filter(Boolean).length;
+    return alive / KAGHA_LINES.length;
+  });
+
+  const amberScaleY = $derived.by(() => {
+    if (bannerLineAlive.length === 0) return 0;
+    const alive = bannerLineAlive.filter(Boolean).length;
+    return alive / KAGHA_LINES.length;
+  });
+
   const WIN_ASCII_FRAMES = [
     ["*** KAGHA CLEARED ***"],
     ["<\\o/> KAGHA WIN <\\o/>"],
@@ -207,18 +219,21 @@
     asciiFontPx = ASCII_MAX_FONT;
     queueMicrotask(() => {
       if (!asciiHost || !asciiBase) return;
-      const available = Math.max(0, asciiHost.clientWidth - 4);
-      const required = asciiBase.scrollWidth;
-      if (available <= 0 || required <= 0) return;
+      requestAnimationFrame(() => {
+        if (!asciiHost || !asciiBase) return;
+        const available = Math.max(0, asciiHost.clientWidth - 4);
+        const required = asciiBase.scrollWidth;
+        if (available <= 0 || required <= 0) return;
 
-      const ratio = available / required;
-      const fitted = Math.max(ASCII_MIN_FONT, Math.min(ASCII_MAX_FONT, Math.floor(ASCII_MAX_FONT * ratio * 10) / 10));
-      asciiFontPx = fitted;
-      if (bannerShowCanvas) {
-        queueMicrotask(() => {
-          if (prepareBannerCanvas()) drawBannerGame();
-        });
-      }
+        const ratio = available / required;
+        const fitted = Math.max(ASCII_MIN_FONT, Math.min(ASCII_MAX_FONT, Math.floor(ASCII_MAX_FONT * ratio * 10) / 10));
+        asciiFontPx = fitted;
+        if (bannerShowCanvas) {
+          queueMicrotask(() => {
+            if (prepareBannerCanvas()) drawBannerGame();
+          });
+        }
+      });
     });
   }
 
@@ -801,9 +816,16 @@
   }
 
   function tickBannerGame(ts: number) {
+    if (!bannerGameActive && !bannerWon && bannerChunks.length === 0 && bannerParticles.length === 0) {
+      if (bannerRaf) cancelAnimationFrame(bannerRaf);
+      bannerRaf = 0;
+      return;
+    }
     const dt = clamp((ts - (bannerLastTs || ts)) / 1000, 0, 0.033);
     bannerLastTs = ts;
-    updateBannerGame(dt);
+    if (bannerGameActive) {
+      updateBannerGame(dt);
+    }
     drawBannerGame();
     bannerRaf = requestAnimationFrame(tickBannerGame);
   }
@@ -2253,8 +2275,8 @@
               >
                 <div class="kaghaGameWrap">
                   <pre class="kaghaAscii base" bind:this={asciiBase}>{KAGHA_ASCII}</pre>
-                  <pre class="kaghaAscii layer red" aria-hidden="true">{KAGHA_ASCII}</pre>
-                  <pre class="kaghaAscii layer amber" aria-hidden="true">{KAGHA_ASCII}</pre>
+                  <pre class="kaghaAscii layer red" aria-hidden="true" style="--red-scale-y: {redScaleY};">{KAGHA_ASCII}</pre>
+                  <pre class="kaghaAscii layer amber" aria-hidden="true" style="--amber-scale-y: {amberScaleY};">{KAGHA_ASCII}</pre>
                   <canvas class="kaghaGameCanvas" bind:this={bannerCanvas} aria-hidden="true"></canvas>
                   <div class="kaghaGameHud" aria-hidden="true">
                     <span>{bannerProgressPct}%</span>
@@ -2306,6 +2328,7 @@
           class="in"
           bind:this={inputEl}
           value={cmdline}
+          aria-label={isFr ? "Entree de commande du terminal" : "Terminal command input"}
           oninput={(e) => {
             cmdline = (e.currentTarget as HTMLInputElement).value;
             queueMicrotask(() => inputEl?.setSelectionRange(cmdline.length, cmdline.length));
