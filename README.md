@@ -6,7 +6,8 @@ Portfolio web application with a Go backend and a SvelteKit frontend, designed w
 
 Short walkthrough video of the portfolio experience.
 
-- [Watch the demo (1.5x)](docs/media/portfolio-demo.mp4)
+- [Open demo in GitHub player](https://github.com/ghassenelkamel/Portfolio-V2/blob/main/docs/media/portfolio-demo.mp4)
+- [Download demo file](https://raw.githubusercontent.com/ghassenelkamel/Portfolio-V2/main/docs/media/portfolio-demo.mp4)
 
 ## Stack
 
