@@ -1,7 +1,9 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import { onDestroy } from "svelte";
 
   type Status = { kind: 'ok' | 'err' | 'info'; msg: string } | null;
+  type FieldErrors = { from?: string; subject?: string; message?: string };
 
   type ContactContent = {
     eyebrow?: string;
@@ -41,7 +43,13 @@
         sentThanks: "Message envoyé. Merci !",
         networkError: "Erreur réseau.",
         subjectPlaceholder: "Quel sujet souhaitez-vous aborder ?",
-        messagePlaceholder: "Ecrivez votre message..."
+        messagePlaceholder: "Ecrivez votre message...",
+        allFieldsRequired: "Tous les champs ci-dessous sont obligatoires.",
+        emailRequired: "L'email est obligatoire.",
+        subjectRequired: "L'objet est obligatoire.",
+        messageRequired: "Le message est obligatoire.",
+        fixErrors: "Veuillez corriger les champs en erreur puis réessayer.",
+        dismiss: "fermer"
       }
     : {
         title: "Contact",
@@ -66,7 +74,13 @@
         sentThanks: "Message sent. Thanks!",
         networkError: "Network error.",
         subjectPlaceholder: "What do you want to talk about?",
-        messagePlaceholder: "Write your message..."
+        messagePlaceholder: "Write your message...",
+        allFieldsRequired: "All fields below are required.",
+        emailRequired: "Email is required.",
+        subjectRequired: "Subject is required.",
+        messageRequired: "Message is required.",
+        fixErrors: "Please fix the highlighted fields and try again.",
+        dismiss: "dismiss"
       });
 
   const toEmail = $derived(content.email || "Ghassenelkamel@live.fr");
@@ -80,11 +94,39 @@
   let from = $state("");
   let subject = $state("");
   let message = $state("");
+  let fieldErrors = $state<FieldErrors>({});
+  let statusTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function setStatus(s: Status, ms = 2200) {
+  function setStatus(s: Status, autoHideMs = 0) {
+    if (statusTimer) {
+      clearTimeout(statusTimer);
+      statusTimer = null;
+    }
     status = s;
-    if (s) setTimeout(() => (status = null), ms);
+    if (s && autoHideMs > 0) {
+      statusTimer = setTimeout(() => {
+        status = null;
+        statusTimer = null;
+      }, autoHideMs);
+    }
   }
+
+  function clearStatus() {
+    if (statusTimer) {
+      clearTimeout(statusTimer);
+      statusTimer = null;
+    }
+    status = null;
+  }
+
+  function clearFieldError(field: keyof FieldErrors) {
+    if (!fieldErrors[field]) return;
+    fieldErrors = { ...fieldErrors, [field]: undefined };
+  }
+
+  onDestroy(() => {
+    if (statusTimer) clearTimeout(statusTimer);
+  });
 
   async function copyEmail() {
     try {
@@ -100,19 +142,32 @@
     const s = subject.trim();
     const m = message.trim();
 
-    if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return ui.validEmail;
-    if (!s || s.length < 3) return ui.subjectShort;
-    if (!m || m.length < 10) return ui.messageShort;
-    if (m.length > 4000) return ui.messageLong;
-    return null;
+    const errors: FieldErrors = {};
+
+    if (!e) errors.from = ui.emailRequired;
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) errors.from = ui.validEmail;
+
+    if (!s) errors.subject = ui.subjectRequired;
+    else if (s.length < 3) errors.subject = ui.subjectShort;
+
+    if (!m) errors.message = ui.messageRequired;
+    else if (m.length < 10) errors.message = ui.messageShort;
+    else if (m.length > 4000) errors.message = ui.messageLong;
+
+    return errors;
   }
 
   async function submit() {
-    const err = validate();
-    if (err) return setStatus({ kind: "err", msg: err }, 2800);
+    const errors = validate();
+    fieldErrors = errors;
+
+    if (errors.from || errors.subject || errors.message) {
+      setStatus({ kind: "err", msg: ui.fixErrors });
+      return;
+    }
 
     sending = true;
-    setStatus({ kind: "info", msg: ui.sendingStatus }, 1200);
+    setStatus({ kind: "info", msg: ui.sendingStatus });
 
     try {
       const res = await fetch("/api/contact", {
@@ -135,15 +190,16 @@
         } catch {
           // Keep raw response text.
         }
-        return setStatus({ kind: "err", msg: `${ui.sendFailed} (${res.status}). ${details}` }, 5000);
+        return setStatus({ kind: "err", msg: `${ui.sendFailed} (${res.status}). ${details}` });
       }
 
-      setStatus({ kind: "ok", msg: ui.sentThanks }, 2500);
+      setStatus({ kind: "ok", msg: ui.sentThanks });
       from = "";
       subject = "";
       message = "";
+      fieldErrors = {};
     } catch (e) {
-      setStatus({ kind: "err", msg: e instanceof Error ? e.message : ui.networkError }, 3500);
+      setStatus({ kind: "err", msg: e instanceof Error ? e.message : ui.networkError });
     } finally {
       sending = false;
     }
@@ -172,23 +228,60 @@
     </div>
 
     <div class="form">
+      <p class="formHint">{ui.allFieldsRequired}</p>
+
       <label>
         <span>{ui.from}</span>
-        <input bind:value={from} type="email" placeholder={ui.fromPlaceholder} autocomplete="email" />
+        <input
+          bind:value={from}
+          type="email"
+          placeholder={ui.fromPlaceholder}
+          autocomplete="email"
+          required
+          aria-invalid={fieldErrors.from ? "true" : undefined}
+          aria-describedby={fieldErrors.from ? "fromError" : undefined}
+          oninput={() => clearFieldError("from")}
+        />
+        {#if fieldErrors.from}
+          <span id="fromError" class="fieldError">{fieldErrors.from}</span>
+        {/if}
       </label>
 
       <label>
         <span>{ui.subject}</span>
-        <input bind:value={subject} type="text" placeholder={ui.subjectPlaceholder} />
+        <input
+          bind:value={subject}
+          type="text"
+          placeholder={ui.subjectPlaceholder}
+          required
+          maxlength="180"
+          aria-invalid={fieldErrors.subject ? "true" : undefined}
+          aria-describedby={fieldErrors.subject ? "subjectError" : undefined}
+          oninput={() => clearFieldError("subject")}
+        />
+        {#if fieldErrors.subject}
+          <span id="subjectError" class="fieldError">{fieldErrors.subject}</span>
+        {/if}
       </label>
 
       <label>
         <span>{ui.message}</span>
-        <textarea bind:value={message} placeholder={ui.messagePlaceholder}></textarea>
+        <textarea
+          bind:value={message}
+          placeholder={ui.messagePlaceholder}
+          required
+          maxlength="4000"
+          aria-invalid={fieldErrors.message ? "true" : undefined}
+          aria-describedby={fieldErrors.message ? "messageError" : undefined}
+          oninput={() => clearFieldError("message")}
+        ></textarea>
+        {#if fieldErrors.message}
+          <span id="messageError" class="fieldError">{fieldErrors.message}</span>
+        {/if}
       </label>
 
       <div class="actions">
-        <button class="btn" type="button" disabled={sending} onclick={submit}>
+        <button class="btn" type="button" disabled={sending} aria-busy={sending} onclick={submit}>
           {sending ? ui.sending : ui.send}
         </button>
         <a class="link" href={linkedInUrl} target="_blank" rel="noreferrer">linkedin</a>
@@ -197,7 +290,10 @@
       </div>
 
       {#if status}
-        <div class={"status " + status.kind}>{status.msg}</div>
+        <div class={"status " + status.kind} role={status.kind === "err" ? "alert" : "status"} aria-live="polite">
+          <span>{status.msg}</span>
+          <button type="button" class="statusClose" onclick={clearStatus}>{ui.dismiss}</button>
+        </div>
       {/if}
     </div>
   </div>
@@ -273,6 +369,12 @@
   .ghostBtn:hover { background: rgba(204,102,102,0.12); transform: translateY(-1px); }
 
   .form { display: grid; gap: 12px; }
+  .formHint {
+    margin: 0;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: rgba(245,245,245,0.66);
+  }
 
   label span {
     display: block;
@@ -295,6 +397,17 @@
 
   textarea { min-height: 170px; resize: vertical; }
   input:focus, textarea:focus { border-color: rgba(228,90,90,0.45); }
+  input[aria-invalid="true"], textarea[aria-invalid="true"] {
+    border-color: rgba(255, 140, 140, 0.66);
+  }
+
+  .fieldError {
+    display: block;
+    margin-top: 6px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: rgba(255, 140, 140, 0.92);
+  }
 
   .actions { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
 
@@ -321,10 +434,43 @@
   }
   .link:hover { border-bottom-color: rgba(228,90,90,0.75); }
 
-  .status { margin-top: 8px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
-  .status.ok { color: rgba(140, 240, 170, 0.85); }
-  .status.err { color: rgba(255, 140, 140, 0.90); }
-  .status.info { color: rgba(245,245,245,0.68); }
+  .status {
+    margin-top: 8px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 10px 12px;
+    background: rgba(12,14,18,0.22);
+  }
+  .status.ok {
+    color: rgba(140, 240, 170, 0.9);
+    border-color: rgba(140, 240, 170, 0.34);
+  }
+  .status.err {
+    color: rgba(255, 140, 140, 0.95);
+    border-color: rgba(255, 140, 140, 0.4);
+  }
+  .status.info {
+    color: rgba(245,245,245,0.8);
+    border-color: rgba(245,245,245,0.24);
+  }
+
+  .statusClose {
+    border: 1px solid rgba(245,245,245,0.20);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    color: inherit;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 5px 9px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
 
   @media (max-width: 760px) {
     .t {
